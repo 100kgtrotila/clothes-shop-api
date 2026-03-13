@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { requireAuth } from '@clerk/express';
-import { categoryController } from './category.controller.js';
 import { createCategorySchema } from './category.schema.js';
 import { validate } from '../../middlewares/validate.js';
+
+import categoryController from './category.controller.js';
 
 const router = Router();
 
