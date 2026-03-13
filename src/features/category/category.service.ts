@@ -19,4 +19,4 @@ export class CategoryService {
     }
 }
 
-export const categoryService = new CategoryService();
+export default new CategoryService();
