@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { categoryService } from './category.service.js';
+import categoryService from './category.service.js';
 
 export class CategoryController {
     async getAllCategories(req: Request, res: Response) {
@@ -14,3 +14,5 @@ export class CategoryController {
         res.status(201).json({ success: true, data: newCategory });
     }
 }
+
+export default new CategoryController();
