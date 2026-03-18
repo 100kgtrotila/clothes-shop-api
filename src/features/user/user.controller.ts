@@ -1,7 +1,7 @@
-import type { Response, Request } from "express";
-import userService from "./user.service.js";
-import type { WebhookRequest } from "../../middlewares/webhook.middleware.js";
 import { getAuth } from "@clerk/express";
+import type { Request, Response } from "express";
+import type { WebhookRequest } from "../../middlewares/webhook.middleware.js";
+import userService from "./user.service.js";
 
 export class UserController {
 	async handleClerkWebhook(req: WebhookRequest, res: Response): Promise<void> {
