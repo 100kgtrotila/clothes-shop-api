@@ -26,7 +26,7 @@ export class UserController {
 				return;
 			}
 
-			const user = await userService.geCurrentUser(userId);
+			const user = await userService.getCurrentUser(userId);
 
 			res.status(200).json({ success: true, data: user });
 		} catch (error) {

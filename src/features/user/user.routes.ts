@@ -1,8 +1,7 @@
-import { Router } from "express";
-import express from "express";
-import userController from "./user.controller.js";
-import { verifyClerkWebhook } from "../../middlewares/webhook.middleware.js";
+import express, { Router } from "express";
 import { requireApiAuth } from "../../middlewares/auth.middleware.js";
+import { verifyClerkWebhook } from "../../middlewares/webhook.middleware.js";
+import userController from "./user.controller.js";
 
 const router = Router();
 

@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { createCategorySchema } from "./category.schema.js";
-import { validate } from "../../middlewares/validate.js";
 import { requireApiAuth } from "../../middlewares/auth.middleware.js";
+import { validate } from "../../middlewares/validate.js";
 import categoryController from "./category.controller.js";
+import { createCategorySchema } from "./category.schema.js";
 
 const router = Router();
 

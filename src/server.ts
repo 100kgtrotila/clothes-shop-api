@@ -1,8 +1,8 @@
-import express from "express";
 import { clerkMiddleware } from "@clerk/express";
+import express from "express";
 import categoryRoutes from "./features/category/category.routes.js";
-import { errorHandler } from "./middlewares/error.middleware.js";
 import userRoutes from "./features/user/user.routes.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
 
 const app = express();
 
@@ -12,13 +12,6 @@ app.use(clerkMiddleware());
 app.use("/api/users", userRoutes);
 
 app.use(express.json());
-
-app.post("/api/test", (req, res) => {
-	res.json({ message: "Бекенд живий і бачить POST запит!" });
-});
-app.get("/api/test", (req, res) => {
-	res.json({ message: "Бекенд живий і бачить GET запит!" });
-});
 
 app.use("/api/categories", categoryRoutes);
 
