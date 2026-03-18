@@ -1,11 +1,12 @@
 import { getAuth } from "@clerk/express";
 import type { NextFunction, Request, Response } from "express";
+import { prisma } from "../db/prisma.js";
 
-export const requireApiAuth = (
+export const requireApiAuth = async (
 	req: Request,
 	res: Response,
 	next: NextFunction,
-): void => {
+): Promise<void> => {
 	const auth = getAuth(req);
 
 	if (!auth.userId) {
@@ -16,5 +17,18 @@ export const requireApiAuth = (
 		return;
 	}
 
+	const user = await prisma.user.findUnique({
+		where: { id: auth.userId },
+	});
+
+	if (!user) {
+		res.status(401).json({
+			success: false,
+			message: "User not found",
+		});
+		return;
+	}
+
+	req.user = user;
 	next();
 };
