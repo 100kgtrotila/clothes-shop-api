@@ -17,5 +17,12 @@ export const getProductsSchema = z.object({
 	}),
 });
 
+export const deleteProductSchema = z.object({
+	params: z.object({
+		id: z.uuid(),
+	}),
+});
+
+export type deleteProductDto = z.infer<typeof deleteProductSchema>["params"];
 export type getProductsDto = z.infer<typeof getProductsSchema>["query"];
 export type createProductDto = z.infer<typeof createProductSchema>["body"];

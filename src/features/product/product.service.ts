@@ -37,6 +37,20 @@ export class ProductService {
 			},
 		});
 	}
+
+	async delete(id: string) {
+		const exists = await prisma.product.findUnique({
+			where: { id: id },
+		});
+
+		if (!exists) {
+			throw new Error(`Product with id ${id}, does not exists`);
+		}
+
+		return prisma.product.delete({
+			where: { id },
+		});
+	}
 }
 
 export default new ProductService();

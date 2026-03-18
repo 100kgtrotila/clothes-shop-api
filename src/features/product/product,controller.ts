@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { getProductsSchema } from "./product.schema.js";
+import { deleteProductSchema, getProductsSchema } from "./product.schema.js";
 import productService from "./product.service.js";
 
 export class productController {
@@ -15,6 +15,12 @@ export class productController {
 			success: true,
 			data: newProduct,
 		});
+	}
+
+	async delete(req: Request, res: Response) {
+		const { params } = deleteProductSchema.parse(req);
+		await productService.delete(params.id);
+		res.status(204).send();
 	}
 }
 

@@ -2,7 +2,7 @@ import { Router } from "express";
 import { requireApiAuth } from "../../middlewares/auth.middleware.js";
 import { validate } from "../../middlewares/validate.js";
 import productController from "./product,controller.js";
-import { createProductSchema } from "./product.schema.js";
+import { createProductSchema, deleteProductSchema } from "./product.schema.js";
 
 const router = Router();
 
@@ -12,6 +12,12 @@ router.post(
 	requireApiAuth,
 	validate(createProductSchema),
 	productController.createProduct,
+);
+router.delete(
+	"/:id",
+	requireApiAuth,
+	validate(deleteProductSchema),
+	productController.delete,
 );
 
 export default router;
