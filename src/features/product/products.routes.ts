@@ -13,3 +13,5 @@ router.post(
 	validate(createProductSchema),
 	productController.createProduct,
 );
+
+export default router;
