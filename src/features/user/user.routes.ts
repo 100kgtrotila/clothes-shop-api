@@ -3,6 +3,8 @@ import { requireApiAuth } from "../../middlewares/auth.middleware.js";
 import { verifyClerkWebhook } from "../../middlewares/webhook.middleware.js";
 import userController from "./user.controller.js";
 
+console.log("userController:", userController);
+console.log("handleClerkWebhook:", userController.handleClerkWebhook);
 const router = Router();
 
 router.post(
