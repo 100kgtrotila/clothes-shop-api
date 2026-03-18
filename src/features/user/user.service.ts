@@ -21,7 +21,7 @@ export class UserService {
 		}
 	}
 
-	async geCurrentUser(clerkId: string) {
+	async getCurrentUser(clerkId: string) {
 		const user = await prisma.user.findUnique({
 			where: { id: clerkId },
 			include: {
