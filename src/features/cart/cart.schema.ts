@@ -8,4 +8,16 @@ export const addItemCartSchema = z.object({
 	}),
 });
 
-export type createCartItemSchemaDto = z.infer<typeof addItemCartSchema>["body"];
+export const deleteItemCartSchema = z.object({
+	params: z.object({
+		productId: z.uuid(),
+	}),
+});
+
+export const updateItemCartSchema = z.object({
+	body: addItemCartSchema.shape.body.omit({ cartId: true, productId: true }),
+});
+
+export type createCartItemDto = z.infer<typeof addItemCartSchema>["body"];
+export type deleteItemCartDto = z.infer<typeof deleteItemCartSchema>["params"];
+export type updateItemCartDto = z.infer<typeof updateItemCartSchema>["body"];
