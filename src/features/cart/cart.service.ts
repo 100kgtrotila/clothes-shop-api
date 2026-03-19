@@ -1,8 +1,8 @@
 import { prisma } from "../../db/prisma.js";
-import type { createCartItemSchemaDto } from "./cart.schema.js";
+import type { createCartItemDto } from "./cart.schema.js";
 
 export class CartService {
-	async addItem(userId: string, dto: createCartItemSchemaDto) {
+	async addItem(userId: string, dto: createCartItemDto) {
 		const cart = await prisma.cart.findUnique({
 			where: { userId },
 		});
