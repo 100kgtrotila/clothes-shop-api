@@ -1,0 +1,8 @@
+model User {
+  id        String   @id
+  email     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  cart      Cart?
+  orders    Order[]
+  @@map("users")
+}

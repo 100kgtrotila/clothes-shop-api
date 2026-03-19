@@ -1,0 +1,6 @@
+enum OrderStatus {
+    PENDING   @map("pending")
+    PAID      @map("paid")
+    SHIPPED   @map("shipped")
+    CANCELLED @map("cancelled")
+}
