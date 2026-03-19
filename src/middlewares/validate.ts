@@ -8,12 +8,13 @@ export const validate = (schema: ZodSchema) => {
 		next: NextFunction,
 	): Promise<void> => {
 		try {
-			await schema.parseAsync({
+			const result = await schema.parseAsync({
 				body: req.body,
 				query: req.query,
 				params: req.params,
 			});
 
+			Object.assign(req, result);
 			next();
 		} catch (error) {
 			if (error instanceof ZodError) {
