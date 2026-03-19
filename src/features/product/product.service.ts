@@ -2,13 +2,24 @@ import { prisma } from "../../db/prisma.js";
 import type { createProductDto, getProductsDto } from "./product.schema.js";
 
 export class ProductService {
-	async getAll(data: getProductsDto) {
-		const { page, limit } = data;
+	async getAll(dto: getProductsDto) {
+		const { page, limit, categoryId } = dto;
 		const skip = (page - 1) * limit;
 
+		const where = categoryId ? { categories: { some: { categoryId } } } : {};
+
 		const [items, total] = await Promise.all([
-			prisma.product.findMany({ skip, take: limit }),
-			prisma.product.count(),
+			prisma.product.findMany({
+				skip,
+				take: limit,
+				where,
+				include: {
+					categories: {
+						include: { category: true },
+					},
+				},
+			}),
+			prisma.product.count({ where }),
 		]);
 
 		return {
@@ -20,20 +31,22 @@ export class ProductService {
 		};
 	}
 
-	async create(data: createProductDto) {
-		const existsCategory = await prisma.category.findUnique({
-			where: { id: data.categoryId },
-		});
-
-		if (!existsCategory) {
-			throw new Error(`Category with ${data.categoryId} does not exists`);
-		}
+	async create(dto: createProductDto) {
+		const { categoryIds, stock, description, ...productData } = dto;
 
 		return prisma.product.create({
 			data: {
-				...data,
-				description: data.description ?? null,
-				stock: data.stock ?? 0,
+				...productData,
+				description: description ?? null,
+				...(stock !== undefined && { stock }),
+				categories: {
+					create: categoryIds.map((categoryId) => ({ categoryId })),
+				},
+			},
+			include: {
+				categories: {
+					include: { category: true },
+				},
 			},
 		});
 	}
