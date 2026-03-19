@@ -1,12 +1,12 @@
 import { prisma } from "../../db/prisma.js";
-import type { createCategoryInput } from "./category.schema.js";
+import type { createCategoryDto } from "./category.schema.js";
 
 export class CategoryService {
 	async getAll() {
 		return prisma.category.findMany();
 	}
 
-	async create(data: createCategoryInput) {
+	async create(data: createCategoryDto) {
 		const exists = await prisma.category.findUnique({
 			where: { slug: data.slug },
 		});
