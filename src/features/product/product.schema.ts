@@ -17,6 +17,10 @@ export const getProductsSchema = z.object({
 	}),
 });
 
+export const updateProductSchema = z.object({
+	body: createProductSchema.shape.body.partial(),
+});
+
 export const deleteProductSchema = z.object({
 	params: z.object({
 		id: z.uuid(),
@@ -26,3 +30,4 @@ export const deleteProductSchema = z.object({
 export type deleteProductDto = z.infer<typeof deleteProductSchema>["params"];
 export type getProductsDto = z.infer<typeof getProductsSchema>["query"];
 export type createProductDto = z.infer<typeof createProductSchema>["body"];
+export type updateProductDto = z.infer<typeof updateProductSchema>["body"];
