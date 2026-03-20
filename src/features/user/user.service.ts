@@ -23,7 +23,7 @@ export class UserService {
 
 	async getCurrentUser(clerkId: string) {
 		const user = await prisma.user.findUnique({
-			where: { id: clerkId },
+			where: { clerkId },
 			include: {
 				cart: true,
 				// orders: true
