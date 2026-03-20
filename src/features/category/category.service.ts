@@ -40,6 +40,20 @@ export class CategoryService {
 			},
 		});
 	}
+
+	async delete(id: string) {
+		const exists = await prisma.category.findUnique({
+			where: { id: id },
+		});
+
+		if (!exists) {
+			throw new Error(`Category with ${id} not found!`);
+		}
+
+		return prisma.category.delete({
+			where: { id: id },
+		});
+	}
 }
 
 export default new CategoryService();
