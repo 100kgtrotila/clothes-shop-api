@@ -1,12 +1,14 @@
 import { Router } from "express";
 import { requireApiAuth } from "../../middlewares/auth.middleware.js";
 import { validate } from "../../middlewares/validate.js";
-import productController from "./product,controller.js";
+import productController from "./product.controller.js";
 import { createProductSchema, deleteProductSchema } from "./product.schema.js";
 
 const router = Router();
 
 router.get("/", productController.getAllProducts);
+router.get("/:id", productController.getProductById);
+
 router.post(
 	"/",
 	requireApiAuth,
