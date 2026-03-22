@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { Prisma } from "../generated/client.js";
 import { AppError } from "../errors/app.error.js";
+import { logger } from "../utils/logger.js";
 
 export const errorHandler = (
 	err: unknown,
@@ -30,9 +31,15 @@ export const errorHandler = (
 	}
 
 	if (err instanceof AppError) {
+		logger.warn({ path: _req.path, message: err.message }, "Бізнес-помилка");
 		res.status(err.status).json({ success: false, message: err.message });
 		return;
 	}
+
+	logger.error(
+		{ err, path: _req.path, method: _req.method, body: _req.body },
+		"[UNHANDLED ERROR] Server Error",
+	);
 
 	const message = err instanceof Error ? err.message : "Internal server error";
 	const stack = err instanceof Error ? err.stack : undefined;
