@@ -1,5 +1,9 @@
 import type { Request, Response } from "express";
-import { deleteProductSchema, getProductsSchema } from "./product.schema.js";
+import {
+	deleteProductSchema,
+	getProductsSchema,
+	updateProductSchema,
+} from "./product.schema.js";
 import productService from "./product.service.js";
 
 export class productController {
@@ -20,6 +24,18 @@ export class productController {
 		res.status(201).json({
 			success: true,
 			data: newProduct,
+		});
+	}
+
+	async updateProduct(req: Request, res: Response) {
+		const {
+			params: { id: productId },
+			body,
+		} = updateProductSchema.parse(req);
+		const result = await productService.update(productId, body);
+		res.status(200).json({
+			success: true,
+			data: result,
 		});
 	}
 
