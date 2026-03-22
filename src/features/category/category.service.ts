@@ -1,7 +1,7 @@
 import { prisma } from "../../db/prisma.js";
 import type {
-	createCategoryDto,
-	updateCategoryDto,
+	CreateCategoryDto,
+	UpdateCategoryDto,
 } from "./category.schema.js";
 
 export class CategoryService {
@@ -9,7 +9,7 @@ export class CategoryService {
 		return prisma.category.findMany();
 	}
 
-	async create(dto: createCategoryDto) {
+	async create(dto: CreateCategoryDto) {
 		const exists = await prisma.category.findUnique({
 			where: { slug: dto.slug },
 		});
@@ -21,7 +21,7 @@ export class CategoryService {
 		return prisma.category.create({ data: dto });
 	}
 
-	async update(id: string, dto: updateCategoryDto) {
+	async update(id: string, dto: UpdateCategoryDto) {
 		const exists = await prisma.category.findUnique({
 			where: {
 				id: id,
