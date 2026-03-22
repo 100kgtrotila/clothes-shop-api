@@ -7,6 +7,8 @@ import userController from "./features/user/user.controller.js";
 import userRoutes from "./features/user/user.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import { verifyClerkWebhook } from "./middlewares/webhook.middleware.js";
+import { pinoHttp } from "pino-http";
+import { logger } from "./utils/logger.js";
 
 const app = express();
 const PORT = 3000;
@@ -19,6 +21,7 @@ app.post(
 );
 
 app.use(express.json());
+app.use(pinoHttp({ logger }));
 app.use(clerkMiddleware());
 
 app.use("/api/users", userRoutes);
