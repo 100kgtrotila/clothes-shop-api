@@ -1,4 +1,5 @@
 import { prisma } from "../../db/prisma.js";
+import { NotFoundError } from "../../errors/app.error.js";
 import type {
 	CreateProductDto,
 	GetProductsDto,
@@ -41,7 +42,7 @@ export class ProductService {
 		});
 
 		if (!product) {
-			throw new Error(`Product with id ${id} not found!`);
+			throw new NotFoundError(`Product with id ${id} not found`);
 		}
 
 		return product;
@@ -73,7 +74,7 @@ export class ProductService {
 		});
 
 		if (!product) {
-			throw new Error(`Product with id ${productId} not found`);
+			throw new NotFoundError(`Product with id ${productId} not found`);
 		}
 
 		return prisma.$transaction(async (tx) => {
@@ -111,7 +112,7 @@ export class ProductService {
 		});
 
 		if (!exists) {
-			throw new Error(`Product with id ${id}, does not exists`);
+			throw new NotFoundError(`Product with id ${id} not found`);
 		}
 
 		return prisma.product.delete({
