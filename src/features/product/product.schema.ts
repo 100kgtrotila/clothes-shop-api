@@ -37,7 +37,7 @@ export const deleteProductSchema = z.object({
 	}),
 });
 
-export type deleteProductDto = z.infer<typeof deleteProductSchema>["params"];
-export type getProductsDto = z.infer<typeof getProductsSchema>["query"];
-export type createProductDto = z.infer<typeof createProductSchema>["body"];
-export type updateProductDto = z.infer<typeof updateProductSchema>["body"];
+export type ProductParamsDto = z.infer<typeof getProductByIdSchema>["params"];
+export type GetProductsDto = z.infer<typeof getProductsSchema>["query"];
+export type CreateProductDto = z.infer<typeof createProductSchema>["body"];
+export type UpdateProductDto = z.infer<typeof updateProductSchema>["body"];
