@@ -2,7 +2,11 @@ import { Router } from "express";
 import { requireApiAuth } from "../../middlewares/auth.middleware.js";
 import { validate } from "../../middlewares/validate.js";
 import productController from "./product.controller.js";
-import { createProductSchema, deleteProductSchema } from "./product.schema.js";
+import {
+	createProductSchema,
+	deleteProductSchema,
+	updateProductSchema,
+} from "./product.schema.js";
 
 const router = Router();
 
@@ -15,6 +19,13 @@ router.post(
 	validate(createProductSchema),
 	productController.createProduct,
 );
+router.patch(
+	"/:id",
+	requireApiAuth,
+	validate(updateProductSchema),
+	productController.updateProduct,
+);
+
 router.delete(
 	"/:id",
 	requireApiAuth,
