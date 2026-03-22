@@ -11,7 +11,7 @@ export const updateCategorySchema = z.object({
 	params: z.object({
 		id: z.uuid(),
 	}),
-	body: createCategorySchema.shape.body.partial(),
+	body: createCategorySchema.shape.body.partial().strict(),
 });
 
 export const deleteCategorySchema = z.object({
@@ -20,6 +20,6 @@ export const deleteCategorySchema = z.object({
 	}),
 });
 
-export type createCategoryDto = z.infer<typeof createCategorySchema>["body"];
-export type updateCategoryDto = z.infer<typeof updateCategorySchema>["body"];
-export type deleteCategoryDto = z.infer<typeof deleteCategorySchema>["params"];
+export type CreateCategoryDto = z.infer<typeof createCategorySchema>["body"];
+export type UpdateCategoryDto = z.infer<typeof updateCategorySchema>["body"];
+export type CategoryParamsDto = z.infer<typeof deleteCategorySchema>["params"];
