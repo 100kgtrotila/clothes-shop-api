@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { OrderStatus } from "../../generated/enums.js";
 
-export const getOrdersSchema = z.object({
+export const Test = z.object({
 	query: z.object({
 		page: z.coerce.number().int().positive().default(1),
 		limit: z.coerce.number().int().positive().max(100).default(10),
@@ -43,4 +43,4 @@ export type UpdateStatusOrderDto = z.infer<
 	typeof updateStatusOrderSchema
 >["body"];
 export type GetMyOrdersDto = z.infer<typeof getMyOrdersSchema>["query"];
-export type GetOrdersDto = z.infer<typeof getOrdersSchema>["query"];
+export type GetOrdersDto = z.infer<typeof Test>["query"];
