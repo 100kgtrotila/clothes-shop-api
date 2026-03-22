@@ -1,4 +1,5 @@
 import { prisma } from "../../db/prisma.js";
+import { NotFoundError } from "../../errors/app.error.js";
 import type { AddCartItemDto, UpdateCartItemDto } from "./cart.schema.js";
 
 export class CartService {
@@ -7,7 +8,7 @@ export class CartService {
 			where: { userId },
 		});
 		if (!cart) {
-			throw new Error(`Cart not found`);
+			throw new NotFoundError("Cart not found");
 		}
 		return prisma.cartItem.create({
 			data: {
@@ -30,7 +31,7 @@ export class CartService {
 			},
 		});
 		if (!cart) {
-			throw new Error("Cart not found");
+			throw new NotFoundError("Cart not found");
 		}
 		return cart;
 	}
@@ -40,7 +41,7 @@ export class CartService {
 			where: { userId },
 		});
 		if (!cart) {
-			throw new Error("Cart not found");
+			throw new NotFoundError("Cart not found");
 		}
 		const cartItem = await prisma.cartItem.findUnique({
 			where: {
@@ -51,7 +52,7 @@ export class CartService {
 			},
 		});
 		if (!cartItem) {
-			throw new Error(`Product with id ${productId} not found in cart`);
+			throw new NotFoundError(`Product with id ${productId} not found in cart`);
 		}
 		return prisma.cartItem.update({
 			where: { id: cartItem.id },
@@ -66,7 +67,7 @@ export class CartService {
 			where: { userId },
 		});
 		if (!cart) {
-			throw new Error("Cart not found");
+			throw new NotFoundError("Cart not found");
 		}
 		const cartItem = await prisma.cartItem.findUnique({
 			where: {
@@ -77,7 +78,7 @@ export class CartService {
 			},
 		});
 		if (!cartItem) {
-			throw new Error("Product not found in cart");
+			throw new NotFoundError(`Product with id ${productId} not found in cart`);
 		}
 		return prisma.cartItem.delete({
 			where: { id: cartItem.id },
