@@ -1,25 +1,25 @@
 import { z } from "zod";
 
-export const addItemCartSchema = z.object({
+export const addCartItemSchema = z.object({
 	body: z.object({
 		productId: z.uuid(),
-		quantity: z.number().positive(),
+		quantity: z.number().int().positive(),
 	}),
 });
 
-export const deleteItemCartSchema = z.object({
+export const updateCartItemSchema = z.object({
+	params: z.object({
+		productId: z.uuid(),
+	}),
+	body: addCartItemSchema.shape.body.omit({ productId: true }),
+});
+
+export const deleteCartItemSchema = z.object({
 	params: z.object({
 		productId: z.uuid(),
 	}),
 });
 
-export const updateItemCartSchema = z.object({
-	params: z.object({
-		productId: z.uuid(),
-	}),
-	body: addItemCartSchema.shape.body.omit({ productId: true }),
-});
-
-export type createCartItemDto = z.infer<typeof addItemCartSchema>["body"];
-export type deleteItemCartDto = z.infer<typeof deleteItemCartSchema>["params"];
-export type updateItemCartDto = z.infer<typeof updateItemCartSchema>["body"];
+export type AddCartItemDto = z.infer<typeof addCartItemSchema>["body"];
+export type UpdateCartItemDto = z.infer<typeof updateCartItemSchema>["body"];
+export type CartItemParamsDto = z.infer<typeof deleteCartItemSchema>["params"];
