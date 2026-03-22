@@ -1,4 +1,5 @@
 import { prisma } from "../../db/prisma.js";
+import { ConflictError, NotFoundError } from "../../errors/app.error.js";
 import type {
 	CreateCategoryDto,
 	UpdateCategoryDto,
@@ -15,7 +16,7 @@ export class CategoryService {
 		});
 
 		if (exists) {
-			throw new Error(`Category with slug ${dto.slug} already exists`);
+			throw new ConflictError(`Category with slug ${dto.slug} already exists`);
 		}
 
 		return prisma.category.create({ data: dto });
@@ -29,14 +30,14 @@ export class CategoryService {
 		});
 
 		if (!exists) {
-			throw new Error(`Category with id ${id} not found`);
+			throw new NotFoundError(`Category with id ${id} not found`);
 		}
 
 		return prisma.category.update({
 			where: { id },
 			data: {
-				...(dto.name && { name: dto.name }),
-				...(dto.slug && { slug: dto.slug }),
+				...(dto.name !== undefined && { name: dto.name }),
+				...(dto.slug !== undefined && { slug: dto.slug }),
 			},
 		});
 	}
@@ -47,7 +48,7 @@ export class CategoryService {
 		});
 
 		if (!exists) {
-			throw new Error(`Category with ${id} not found!`);
+			throw new NotFoundError(`Category with id ${id} not found`);
 		}
 
 		return prisma.category.delete({
