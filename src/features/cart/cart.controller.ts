@@ -1,10 +1,10 @@
 import type { Request, Response } from "express";
-import { addItemCartSchema, updateItemCartSchema } from "./cart.schema.js";
+import { addCartItemSchema, updateCartItemSchema } from "./cart.schema.js";
 import cartService from "./cart.service.js";
 
 export class CartController {
 	async addItem(req: Request, res: Response) {
-		const { body } = addItemCartSchema.parse(req);
+		const { body } = addCartItemSchema.parse(req);
 		const userId = req.user.id;
 		const result = await cartService.addItem(userId, body);
 		res.status(201).json({
@@ -24,7 +24,7 @@ export class CartController {
 
 	async updateItem(req: Request, res: Response) {
 		const userId = req.user.id;
-		const { body } = updateItemCartSchema.parse(req);
+		const { body } = updateCartItemSchema.parse(req);
 		const { productId } = req.params as { productId: string };
 
 		const result = await cartService.updateItem(userId, body, productId);

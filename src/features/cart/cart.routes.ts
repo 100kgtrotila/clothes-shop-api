@@ -3,9 +3,9 @@ import { requireApiAuth } from "../../middlewares/auth.middleware.js";
 import { validate } from "../../middlewares/validate.js";
 import cartController from "./cart.controller.js";
 import {
-	addItemCartSchema,
-	deleteItemCartSchema,
-	updateItemCartSchema,
+	addCartItemSchema,
+	deleteCartItemSchema,
+	updateCartItemSchema,
 } from "./cart.schema.js";
 
 const router = Router();
@@ -14,20 +14,20 @@ router.get("/", requireApiAuth, cartController.getItems);
 router.post(
 	"/",
 	requireApiAuth,
-	validate(addItemCartSchema),
+	validate(addCartItemSchema),
 	cartController.addItem,
 );
 router.delete(
 	"/:productId",
 	requireApiAuth,
-	validate(deleteItemCartSchema),
+	validate(deleteCartItemSchema),
 	cartController.deleteItem,
 );
 
 router.put(
 	"/:productId",
 	requireApiAuth,
-	validate(updateItemCartSchema),
+	validate(updateCartItemSchema),
 	cartController.updateItem,
 );
 
