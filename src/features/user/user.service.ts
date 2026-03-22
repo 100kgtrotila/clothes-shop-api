@@ -1,5 +1,6 @@
 import type { WebhookEvent } from "@clerk/express";
 import { prisma } from "../../db/prisma.js";
+import { NotFoundError } from "../../errors/app.error.js";
 
 export class UserService {
 	async handleEvent(event: WebhookEvent) {
@@ -30,7 +31,7 @@ export class UserService {
 			},
 		});
 
-		if (!user) throw new Error("User not found in DataBase");
+		if (!user) throw new NotFoundError("User not found");
 		return user;
 	}
 
