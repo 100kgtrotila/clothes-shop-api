@@ -1,12 +1,12 @@
 import { prisma } from "../../db/prisma.js";
 import type {
-	createProductDto,
-	getProductsDto,
-	updateProductDto,
+	CreateProductDto,
+	GetProductsDto,
+	UpdateProductDto,
 } from "./product.schema.js";
 
 export class ProductService {
-	async getAll(dto: getProductsDto) {
+	async getAll(dto: GetProductsDto) {
 		const { page, limit, categoryId } = dto;
 		const skip = (page - 1) * limit;
 
@@ -47,7 +47,7 @@ export class ProductService {
 		return product;
 	}
 
-	async create(dto: createProductDto) {
+	async create(dto: CreateProductDto) {
 		const { categoryIds, stock, description, ...productData } = dto;
 
 		return prisma.product.create({
@@ -67,7 +67,7 @@ export class ProductService {
 		});
 	}
 
-	async update(productId: string, dto: updateProductDto) {
+	async update(productId: string, dto: UpdateProductDto) {
 		const product = await prisma.product.findUnique({
 			where: { id: productId },
 		});
