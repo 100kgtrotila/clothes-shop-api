@@ -1,21 +1,58 @@
 import { prisma } from "../../db/prisma.js";
-import type { createCategoryDto } from "./category.schema.js";
+import type {
+	createCategoryDto,
+	updateCategoryDto,
+} from "./category.schema.js";
 
 export class CategoryService {
 	async getAll() {
 		return prisma.category.findMany();
 	}
 
-	async create(data: createCategoryDto) {
+	async create(dto: createCategoryDto) {
 		const exists = await prisma.category.findUnique({
-			where: { slug: data.slug },
+			where: { slug: dto.slug },
 		});
 
 		if (exists) {
-			throw new Error(`Category with slug ${data.slug} is already exists`);
+			throw new Error(`Category with slug ${dto.slug} already exists`);
 		}
 
-		return prisma.category.create({ data });
+		return prisma.category.create({ data: dto });
+	}
+
+	async update(id: string, dto: updateCategoryDto) {
+		const exists = await prisma.category.findUnique({
+			where: {
+				id: id,
+			},
+		});
+
+		if (!exists) {
+			throw new Error(`Category with id ${id} not found`);
+		}
+
+		return prisma.category.update({
+			where: { id },
+			data: {
+				...(dto.name && { name: dto.name }),
+				...(dto.slug && { slug: dto.slug }),
+			},
+		});
+	}
+
+	async delete(id: string) {
+		const exists = await prisma.category.findUnique({
+			where: { id: id },
+		});
+
+		if (!exists) {
+			throw new Error(`Category with ${id} not found!`);
+		}
+
+		return prisma.category.delete({
+			where: { id: id },
+		});
 	}
 }
 

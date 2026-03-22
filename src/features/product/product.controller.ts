@@ -6,7 +6,13 @@ export class productController {
 	async getAllProducts(req: Request, res: Response) {
 		const { query } = getProductsSchema.parse(req);
 		const result = await productService.getAll(query);
-		res.json(result);
+		res.json(result).status(200);
+	}
+
+	async getProductById(req: Request, res: Response) {
+		const { id } = req.params as { id: string };
+		const result = await productService.getById(id);
+		res.json(result).status(200);
 	}
 
 	async createProduct(req: Request, res: Response) {

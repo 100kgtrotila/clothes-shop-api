@@ -2,7 +2,6 @@ import { z } from "zod";
 
 export const addItemCartSchema = z.object({
 	body: z.object({
-		cartId: z.uuid(),
 		productId: z.uuid(),
 		quantity: z.number().positive(),
 	}),
@@ -15,7 +14,10 @@ export const deleteItemCartSchema = z.object({
 });
 
 export const updateItemCartSchema = z.object({
-	body: addItemCartSchema.shape.body.omit({ cartId: true, productId: true }),
+	params: z.object({
+		productId: z.uuid(),
+	}),
+	body: addItemCartSchema.shape.body.omit({ productId: true }),
 });
 
 export type createCartItemDto = z.infer<typeof addItemCartSchema>["body"];

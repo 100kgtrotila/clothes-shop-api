@@ -13,11 +13,6 @@ export class ProductService {
 				skip,
 				take: limit,
 				where,
-				include: {
-					categories: {
-						include: { category: true },
-					},
-				},
 			}),
 			prisma.product.count({ where }),
 		]);
@@ -29,6 +24,23 @@ export class ProductService {
 			limit,
 			totalPages: Math.ceil(total / limit),
 		};
+	}
+
+	async getById(id: string) {
+		const product = await prisma.product.findUnique({
+			where: { id: id },
+			include: {
+				categories: {
+					include: { category: true },
+				},
+			},
+		});
+
+		if (!product) {
+			throw new Error(`Product with id ${id} not found!`);
+		}
+
+		return product;
 	}
 
 	async create(dto: createProductDto) {

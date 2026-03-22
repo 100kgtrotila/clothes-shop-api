@@ -18,7 +18,7 @@ export const requireApiAuth = async (
 	}
 
 	const user = await prisma.user.findUnique({
-		where: { id: auth.userId },
+		where: { clerkId: auth.userId },
 	});
 
 	if (!user) {

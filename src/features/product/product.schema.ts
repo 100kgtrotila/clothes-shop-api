@@ -18,6 +18,12 @@ export const getProductsSchema = z.object({
 	}),
 });
 
+export const getProductByIdSchema = z.object({
+	params: z.object({
+		id: z.uuid(),
+	}),
+});
+
 export const updateProductSchema = z.object({
 	params: z.object({
 		id: z.uuid(),

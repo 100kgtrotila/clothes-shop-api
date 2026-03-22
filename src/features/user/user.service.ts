@@ -23,7 +23,7 @@ export class UserService {
 
 	async getCurrentUser(clerkId: string) {
 		const user = await prisma.user.findUnique({
-			where: { id: clerkId },
+			where: { clerkId },
 			include: {
 				cart: true,
 				// orders: true
@@ -37,7 +37,7 @@ export class UserService {
 	private async createUser(clerkId: string, email: string) {
 		return prisma.user.create({
 			data: {
-				id: clerkId,
+				clerkId,
 				email: email,
 				cart: { create: {} },
 			},
@@ -47,7 +47,7 @@ export class UserService {
 	private async deleteUser(clerkId: string) {
 		return prisma.user.delete({
 			where: {
-				id: clerkId,
+				clerkId,
 			},
 		});
 	}
