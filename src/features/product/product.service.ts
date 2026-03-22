@@ -1,5 +1,9 @@
 import { prisma } from "../../db/prisma.js";
-import type { createProductDto, getProductsDto } from "./product.schema.js";
+import type {
+	createProductDto,
+	getProductsDto,
+	updateProductDto,
+} from "./product.schema.js";
 
 export class ProductService {
 	async getAll(dto: getProductsDto) {
@@ -59,6 +63,24 @@ export class ProductService {
 				categories: {
 					include: { category: true },
 				},
+			},
+		});
+	}
+
+	async update(id: string, dto: updateProductDto) {
+		const product = await prisma.product.findUnique({
+			where: { id: id },
+		});
+
+		if (!product) {
+			throw new Error(`Product with id ${id} not found`);
+		}
+
+		return prisma.product.update({
+			where: { id: id },
+			data: {
+				...(dto.name && { name: dto.name }),
+				...(dto.description && { description: dto.description }),
 			},
 		});
 	}
