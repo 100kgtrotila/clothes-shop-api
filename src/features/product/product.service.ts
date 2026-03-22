@@ -67,21 +67,41 @@ export class ProductService {
 		});
 	}
 
-	async update(id: string, dto: updateProductDto) {
+	async update(productId: string, dto: updateProductDto) {
 		const product = await prisma.product.findUnique({
-			where: { id: id },
+			where: { id: productId },
 		});
 
 		if (!product) {
-			throw new Error(`Product with id ${id} not found`);
+			throw new Error(`Product with id ${productId} not found`);
 		}
 
-		return prisma.product.update({
-			where: { id: id },
-			data: {
-				...(dto.name && { name: dto.name }),
-				...(dto.description && { description: dto.description }),
-			},
+		return prisma.$transaction(async (tx) => {
+			if (dto.categoryIds) {
+				await tx.productCategory.deleteMany({
+					where: { productId, categoryId: { notIn: dto.categoryIds } },
+				});
+
+				await tx.productCategory.createMany({
+					data: dto.categoryIds.map((categoryId) => ({
+						productId,
+						categoryId,
+					})),
+					skipDuplicates: true,
+				});
+			}
+
+			return tx.product.update({
+				where: { id: productId },
+				data: {
+					...(dto.name !== undefined && { name: dto.name }),
+					...(dto.description !== undefined && {
+						description: dto.description,
+					}),
+					...(dto.price !== undefined && { price: dto.price }),
+					...(dto.stock !== undefined && { stock: dto.stock }),
+				},
+			});
 		});
 	}
 
