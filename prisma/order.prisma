@@ -16,7 +16,7 @@ model OrderItem {
   orderId   String   @map("order_id")
   productId String   @map("product_id")
   quantity  Int
-  price     Decimal  @db.Decimal(10, 2)
+  price     Int
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
   @@index([orderId])

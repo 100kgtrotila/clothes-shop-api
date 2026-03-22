@@ -2,7 +2,7 @@ model Product {
   id          String             @id @default(uuid())
   name        String
   description String?
-  price       Decimal            @db.Decimal(10, 2)
+  price       Int
   stock       Int                @default(0)
   createdAt   DateTime           @default(now()) @map("created_at")
   updatedAt   DateTime           @updatedAt @map("updated_at")
