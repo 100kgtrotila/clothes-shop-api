@@ -43,4 +43,3 @@ export type UpdateStatusOrderDto = z.infer<
 	typeof updateStatusOrderSchema
 >["body"];
 export type GetMyOrdersDto = z.infer<typeof getMyOrdersSchema>["query"];
-
