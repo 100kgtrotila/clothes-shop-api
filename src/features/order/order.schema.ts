@@ -5,10 +5,19 @@ export const getOrdersSchema = z.object({
 	query: z.object({
 		page: z.coerce.number().int().positive().default(1),
 		limit: z.coerce.number().int().positive().max(100).default(10),
+		status: z.enum(OrderStatus).optional(),
 	}),
 });
 
-export const updateOrderSchema = z.object({
+export const getMyOrdersSchema = z.object({
+	query: z.object({
+		page: z.coerce.number().int().positive().default(1),
+		limit: z.coerce.number().int().positive().max(100).default(10),
+		status: z.enum(OrderStatus).optional(),
+	}),
+});
+
+export const updateStatusOrderSchema = z.object({
 	params: z.object({
 		id: z.uuid(),
 	}),
@@ -17,11 +26,21 @@ export const updateOrderSchema = z.object({
 	}),
 });
 
-export const orderParamsSchema = z.object({
+export const cancelOrderSchema = z.object({
 	params: z.object({
 		id: z.uuid(),
 	}),
 });
 
-export type UpdateOrderDto = z.infer<typeof updateOrderSchema>["body"];
-export type OrderParamsDto = z.infer<typeof orderParamsSchema>["params"];
+export const getOrderByIdSchema = z.object({
+	params: z.object({
+		id: z.uuid(),
+	}),
+});
+
+export type OrderParamsDto = z.infer<typeof getOrderByIdSchema>["params"];
+export type UpdateStatusOrderDto = z.infer<
+	typeof updateStatusOrderSchema
+>["body"];
+export type GetMyOrdersDto = z.infer<typeof getMyOrdersSchema>["query"];
+export type GetOrdersDto = z.infer<typeof getOrdersSchema>["query"];
