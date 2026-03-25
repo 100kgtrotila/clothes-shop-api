@@ -1,6 +1,9 @@
+import { OrderStatus } from "@/generated/enums.js";
 import { prisma } from "../../db/prisma.js";
 import { BadRequestError } from "../../errors/app.error.js";
 import { logger } from "../../utils/logger.js";
+import type { GetMyOrdersDto } from "./order.schema.js";
+import { Prisma } from "@/generated/browser.js";
 
 export class OrderService {
 	async checkout(userId: string) {
@@ -72,6 +75,29 @@ export class OrderService {
 		);
 
 		return order;
+	}
+
+	async myOrders(userId: string, dto: GetMyOrdersDto) {
+		const { page, limit, status } = dto;
+		const skip = (page - 1) * limit;
+		const where = status ? { userId, status } : { userId };
+
+		const [orders, total] = await Promise.all([
+			prisma.order.findMany({
+				skip,
+				take: limit,
+				where,
+			}),
+			prisma.order.count({ where }),
+		]);
+
+		return {
+			orders,
+			total,
+			page,
+			limit,
+			totalPages: Math.ceil(total / limit),
+		};
 	}
 }
 
