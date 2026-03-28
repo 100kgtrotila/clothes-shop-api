@@ -33,13 +33,25 @@ export class CategoryService {
 			throw new NotFoundError(`Category with id ${id} not found`);
 		}
 
-		return prisma.category.update({
-			where: { id },
-			data: {
-				...(dto.name !== undefined && { name: dto.name }),
-				...(dto.slug !== undefined && { slug: dto.slug }),
-			},
-		});
+		if (dto.slug && dto.slug !== exists.slug) {
+			const slugTaken = await prisma.category.findUnique({
+				where: { slug: dto.slug },
+			});
+
+			if (slugTaken) {
+				throw new ConflictError(
+					`Category with slug ${dto.slug} already exists`,
+				);
+			}
+
+			return prisma.category.update({
+				where: { id },
+				data: {
+					...(dto.name !== undefined && { name: dto.name }),
+					...(dto.slug !== undefined && { slug: dto.slug }),
+				},
+			});
+		}
 	}
 
 	async delete(id: string) {
