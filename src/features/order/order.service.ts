@@ -1,7 +1,11 @@
 import { prisma } from "../../db/prisma.js";
 import { BadRequestError, NotFoundError } from "../../errors/app.error.js";
 import { logger } from "../../utils/logger.js";
-import type { GetMyOrdersDto, OrderParamsDto } from "./order.schema.js";
+import type {
+	GetMyOrdersDto,
+	OrderParamsDto,
+	UpdateStatusOrderBody,
+} from "./order.schema.js";
 
 export class OrderService {
 	async checkout(userId: string) {
@@ -99,17 +103,13 @@ export class OrderService {
 	}
 
 	async orderById(userId: string, dto: OrderParamsDto) {
-		const order = prisma.order.findUnique({
+		const order = await prisma.order.findUnique({
 			where: {
 				id: dto.id,
 				userId: userId,
 			},
 			include: {
-				items: {
-					include: {
-						product: true,
-					},
-				},
+				items: true,
 			},
 		});
 
@@ -118,6 +118,25 @@ export class OrderService {
 		}
 
 		return order;
+	}
+
+	async updateStatus(id: string, dto: UpdateStatusOrderBody) {
+		const order = await prisma.order.findUnique({
+			where: {
+				id: id,
+			},
+		});
+
+		if (!order) {
+			throw new NotFoundError(`Order with id ${id} not found`);
+		}
+
+		return prisma.order.update({
+			where: { id: id },
+			data: {
+				status: dto.status,
+			},
+		});
 	}
 }
 
