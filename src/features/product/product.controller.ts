@@ -3,6 +3,7 @@ import {
 	deleteProductSchema,
 	getProductsSchema,
 	updateProductSchema,
+	type ProductParamsDto,
 } from "./product.schema.js";
 import productService from "./product.service.js";
 
@@ -14,9 +15,12 @@ export class productController {
 	}
 
 	async getProductById(req: Request, res: Response) {
-		const { id } = req.params as { id: string };
+		const { id } = req.params as unknown as ProductParamsDto;
 		const result = await productService.getById(id);
-		res.json(result).status(200);
+		res.status(200).json({
+			success: true,
+			data: result,
+		});
 	}
 
 	async createProduct(req: Request, res: Response) {
