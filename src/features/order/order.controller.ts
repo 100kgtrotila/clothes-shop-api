@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import orderService from "./order.service.js";
-import { type GetMyOrdersDto } from "./order.schema.js";
+import { type GetMyOrdersDto, type OrderParamsDto } from "./order.schema.js";
 
 export class OrderController {
 	async cheokoutCart(req: Request, res: Response) {
@@ -26,7 +26,7 @@ export class OrderController {
 
 	async getOrderById(req: Request, res: Response) {
 		const userId = req.user.id;
-		const orderId = req.params;
+		const orderId = req.params as unknown as OrderParamsDto;
 
 		const order = await orderService.orderById(userId, orderId);
 	}
