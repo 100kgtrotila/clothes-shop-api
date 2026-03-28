@@ -1,9 +1,7 @@
-import { OrderStatus } from "@/generated/enums.js";
 import { prisma } from "../../db/prisma.js";
 import { BadRequestError } from "../../errors/app.error.js";
 import { logger } from "../../utils/logger.js";
 import type { GetMyOrdersDto } from "./order.schema.js";
-import { Prisma } from "@/generated/browser.js";
 
 export class OrderService {
 	async checkout(userId: string) {
@@ -98,6 +96,24 @@ export class OrderService {
 			limit,
 			totalPages: Math.ceil(total / limit),
 		};
+	}
+
+	async orderById(userId: string, orderId: string) {
+		const order = prisma.order.findUnique({
+			where: {
+				id: orderId,
+				userId: userId,
+			},
+			include: {
+				items: {
+					include: {
+						product: true,
+					},
+				},
+			},
+		});
+
+		return order;
 	}
 }
 
