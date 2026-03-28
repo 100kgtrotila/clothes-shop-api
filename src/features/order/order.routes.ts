@@ -2,7 +2,11 @@ import { Router } from "express";
 import orderController from "./order.controller.js";
 import { requireApiAuth } from "@/middlewares/auth.middleware.js";
 import { validate } from "@/middlewares/validate.js";
-import { getMyOrdersSchema, getOrderByIdSchema } from "./order.schema.js";
+import {
+	getMyOrdersSchema,
+	getOrderByIdSchema,
+	updateStatusOrderSchema,
+} from "./order.schema.js";
 
 const router = Router();
 
@@ -18,5 +22,12 @@ router.get(
 	requireApiAuth,
 	validate(getOrderByIdSchema),
 	orderController.getOrderById,
+);
+
+router.put(
+	"/:id",
+	requireApiAuth,
+	validate(updateStatusOrderSchema),
+	orderController.UpdateOrderStatus,
 );
 export default router;
