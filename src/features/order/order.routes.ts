@@ -24,8 +24,8 @@ router.get(
 	orderController.getOrderById,
 );
 
-router.put(
-	"/:id",
+router.patch(
+	"/:id/status",
 	requireApiAuth,
 	validate(updateStatusOrderSchema),
 	orderController.UpdateOrderStatus,
