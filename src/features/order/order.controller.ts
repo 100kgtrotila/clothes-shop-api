@@ -1,6 +1,11 @@
 import type { Request, Response } from "express";
 import orderService from "./order.service.js";
-import { type GetMyOrdersDto, type OrderParamsDto } from "./order.schema.js";
+import {
+	type GetMyOrdersDto,
+	type OrderParamsDto,
+	type UpdateStatusOrderBody,
+	type UpdateStatusOrderParams,
+} from "./order.schema.js";
 
 export class OrderController {
 	async cheokoutCart(req: Request, res: Response) {
@@ -29,6 +34,22 @@ export class OrderController {
 		const orderId = req.params as unknown as OrderParamsDto;
 
 		const order = await orderService.orderById(userId, orderId);
+
+		res.status(200).json({
+			success: true,
+			data: order,
+		});
+	}
+
+	async UpdateOrderStatus(req: Request, res: Response) {
+		const { id } = req.params as unknown as UpdateStatusOrderParams;
+		const dto = req.body as UpdateStatusOrderBody;
+
+		const updatedOrder = await orderService.updateStatus(id, dto);
+		res.status(200).json({
+			success: true,
+			data: updatedOrder,
+		});
 	}
 }
 
