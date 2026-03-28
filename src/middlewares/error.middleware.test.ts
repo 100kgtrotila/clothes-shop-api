@@ -54,7 +54,6 @@ describe("errorHandler – Prisma known errors", () => {
 			"Unique constraint failed",
 			{ code: "P2002" },
 		);
-		errorHandler(err, makeReq(), makeRes(), next);
 		const res = makeRes();
 		errorHandler(err, makeReq(), res, next);
 		expect(res.status).toHaveBeenCalledWith(409);

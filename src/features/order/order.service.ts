@@ -99,7 +99,7 @@ export class OrderService {
 	}
 
 	async orderById(userId: string, dto: OrderParamsDto) {
-		const order = prisma.order.findUnique({
+		const order = await prisma.order.findUnique({
 			where: {
 				id: dto.id,
 				userId: userId,

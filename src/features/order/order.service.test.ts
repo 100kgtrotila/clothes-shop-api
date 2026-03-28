@@ -183,17 +183,12 @@ describe("OrderService.orderById", () => {
 		expect(result).toEqual(fakeOrder);
 	});
 
-	it("should return null when the order does not exist (missing await in source)", async () => {
-		// NOTE: The source has a missing `await` on `prisma.order.findUnique`, so the
-		// `if (!order)` check is never reached (the Promise is always truthy). This
-		// test documents the current behaviour so any future fix is immediately
-		// visible in the test results.
+	it("should throw NotFoundError when the order does not exist", async () => {
 		mockOrder.findUnique.mockResolvedValue(null);
 
 		const service = new OrderService();
-		// The method returns the Promise directly instead of the resolved value,
-		// so we expect null after awaiting the returned (promise-wrapped) result.
-		const result = await service.orderById("user-1", { id: "order-missing" });
-		expect(result).toBeNull();
+		await expect(
+			service.orderById("user-1", { id: "order-missing" }),
+		).rejects.toThrow("Order with id order-missing not found");
 	});
 });
