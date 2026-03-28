@@ -21,9 +21,11 @@ export const updateStatusOrderSchema = z.object({
 	params: z.object({
 		id: z.uuid(),
 	}),
-	body: z.object({
-		status: z.enum(OrderStatus),
-	}),
+	body: z
+		.object({
+			status: z.enum(OrderStatus),
+		})
+		.strict(),
 });
 
 export const createOrderSchema = z.object({
@@ -45,7 +47,10 @@ export const getOrderByIdSchema = z.object({
 export type CreateOrderDto = z.infer<typeof createOrderSchema>["body"];
 export type GetAllOrdersDto = z.infer<typeof getAllOrdersSchema>["query"];
 export type OrderParamsDto = z.infer<typeof getOrderByIdSchema>["params"];
-export type UpdateStatusOrderDto = z.infer<
+export type UpdateStatusOrderParams = z.infer<
+	typeof updateStatusOrderSchema
+>["params"];
+export type UpdateStatusOrderBody = z.infer<
 	typeof updateStatusOrderSchema
 >["body"];
 export type GetMyOrdersDto = z.infer<typeof getMyOrdersSchema>["query"];
