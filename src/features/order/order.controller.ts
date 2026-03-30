@@ -8,7 +8,7 @@ import {
 } from "./order.schema.js";
 
 export class OrderController {
-	async cheokoutCart(req: Request, res: Response) {
+	async checkoutCart(req: Request, res: Response) {
 		const userId = req.user.id;
 		const order = await orderService.checkout(userId);
 		res.status(201).json({

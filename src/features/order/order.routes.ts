@@ -16,7 +16,7 @@ router.get(
 	validate(getMyOrdersSchema),
 	orderController.getMyOrders,
 );
-router.post("/checkout", requireApiAuth, orderController.cheokoutCart);
+router.post("/checkout", requireApiAuth, orderController.checkoutCart);
 router.get(
 	"/:id",
 	requireApiAuth,
