@@ -10,9 +10,20 @@ import { errorHandler } from "./middlewares/error.middleware.js";
 import { verifyClerkWebhook } from "./middlewares/webhook.middleware.js";
 import { pinoHttp } from "pino-http";
 import { logger } from "./utils/logger.js";
+import cors from "cors";
 
 const app = express();
 const PORT = 3000;
+const allowedOrigins = process.env.FRONTEND_URLS
+	? process.env.FRONTEND_URLS.split(",")
+	: ["http://localhost:5173"];
+
+app.use(
+	cors({
+		origin: allowedOrigins,
+		credentials: true,
+	}),
+);
 
 app.post(
 	"/api/users/webhook",
@@ -20,6 +31,8 @@ app.post(
 	verifyClerkWebhook,
 	userController.handleClerkWebhook,
 );
+
+app.use(cors);
 
 app.use(express.json());
 app.use(pinoHttp({ logger }));
