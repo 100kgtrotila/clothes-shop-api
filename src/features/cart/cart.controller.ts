@@ -38,9 +38,7 @@ export class CartController {
 		const userId = req.user.id;
 		const { productId } = req.params as { productId: string };
 		await cartService.deleteItem(userId, productId);
-		res.status(204).json({
-			success: true,
-		});
+		res.status(204).send();
 	}
 }
 
