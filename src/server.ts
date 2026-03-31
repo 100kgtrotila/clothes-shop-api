@@ -6,6 +6,7 @@ import productRoutes from "./features/product/products.routes.js";
 import userController from "./features/user/user.controller.js";
 import userRoutes from "./features/user/user.routes.js";
 import orderRoutes from "./features/order/order.routes.js";
+import uploadRoutes from "./features/upload/upload.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import { verifyClerkWebhook } from "./middlewares/webhook.middleware.js";
 import { pinoHttp } from "pino-http";
@@ -41,6 +42,8 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRouter);
 app.use("/api/orders", orderRoutes);
+
+app.use("/api/upload", uploadRoutes);
 
 app.use(errorHandler);
 
