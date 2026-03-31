@@ -32,3 +32,30 @@ export const requireApiAuth = async (
 	req.user = user;
 	next();
 };
+
+export const requireAdmin = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	if (!req.user) {
+		res.status(401).json({
+			success: false,
+			message: "Unauthorized",
+		});
+		return;
+	}
+
+	const adminEmails = process.env.ADMIN_EMAILS
+		? process.env.ADMIN_EMAILS.split(",")
+		: [];
+
+	if (!adminEmails.includes(req.user.email)) {
+		res.status(403).json({
+			success: false,
+			message: "Forbidden: Only administrators can perform this action",
+		});
+		return;
+	}
+	next();
+};
