@@ -1,5 +1,8 @@
 import { Router } from "express";
-import { requireApiAuth } from "../../middlewares/auth.middleware.js";
+import {
+	requireApiAuth,
+	requireAdmin,
+} from "../../middlewares/auth.middleware.js";
 import { validate } from "../../middlewares/validate.js";
 import categoryController from "./category.controller.js";
 import {
@@ -14,6 +17,7 @@ router.get("/", categoryController.getAllCategories);
 router.post(
 	"/",
 	requireApiAuth,
+	requireAdmin,
 	validate(createCategorySchema),
 	categoryController.createCategory,
 );
@@ -21,6 +25,7 @@ router.post(
 router.patch(
 	"/:id",
 	requireApiAuth,
+	requireAdmin,
 	validate(updateCategorySchema),
 	categoryController.updateCategory,
 );
@@ -28,6 +33,7 @@ router.patch(
 router.delete(
 	"/:id",
 	requireApiAuth,
+	requireAdmin,
 	validate(deleteCategorySchema),
 	categoryController.deleteCategory,
 );
