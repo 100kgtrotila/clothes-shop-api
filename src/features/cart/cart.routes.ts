@@ -1,5 +1,8 @@
 import { Router } from "express";
-import { requireApiAuth } from "../../middlewares/auth.middleware.js";
+import {
+	requireApiAuth,
+	requireAdmin,
+} from "../../middlewares/auth.middleware.js";
 import { validate } from "../../middlewares/validate.js";
 import cartController from "./cart.controller.js";
 import {
@@ -20,6 +23,7 @@ router.post(
 router.delete(
 	"/:productId",
 	requireApiAuth,
+	requireAdmin,
 	validate(deleteCartItemSchema),
 	cartController.deleteItem,
 );
@@ -27,6 +31,7 @@ router.delete(
 router.put(
 	"/:productId",
 	requireApiAuth,
+	requireAdmin,
 	validate(updateCartItemSchema),
 	cartController.updateItem,
 );
