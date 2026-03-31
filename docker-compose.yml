@@ -24,5 +24,17 @@ services:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: supersecret
 
+  localstack:
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - LOCALSTACK_AUTH_TOKEN=ls-taPIduqi-TeDa-2997-soLA-1762biMi12f7
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./init-s3.sh:/etc/localstack/init/ready.d/init-s3.sh"
+
 volumes:
   pg_data:
