@@ -1,6 +1,6 @@
 import { Router } from "express";
 import orderController from "./order.controller.js";
-import { requireApiAuth } from "@/middlewares/auth.middleware.js";
+import { requireApiAuth, requireAdmin } from "@/middlewares/auth.middleware.js";
 import { validate } from "@/middlewares/validate.js";
 import {
 	getMyOrdersSchema,
@@ -27,6 +27,7 @@ router.get(
 router.patch(
 	"/:id/status",
 	requireApiAuth,
+	requireAdmin,
 	validate(updateStatusOrderSchema),
 	orderController.UpdateOrderStatus,
 );
