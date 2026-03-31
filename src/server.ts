@@ -32,8 +32,6 @@ app.post(
 	userController.handleClerkWebhook,
 );
 
-app.use(cors);
-
 app.use(express.json());
 app.use(pinoHttp({ logger }));
 app.use(clerkMiddleware());
