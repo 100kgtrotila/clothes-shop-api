@@ -1,5 +1,8 @@
 import { Router } from "express";
-import { requireApiAuth } from "../../middlewares/auth.middleware.js";
+import {
+	requireApiAuth,
+	requireAdmin,
+} from "../../middlewares/auth.middleware.js";
 import { validate } from "../../middlewares/validate.js";
 import productController from "./product.controller.js";
 import {
@@ -16,12 +19,14 @@ router.get("/:id", productController.getProductById);
 router.post(
 	"/",
 	requireApiAuth,
+	requireAdmin,
 	validate(createProductSchema),
 	productController.createProduct,
 );
 router.patch(
 	"/:id",
 	requireApiAuth,
+	requireAdmin,
 	validate(updateProductSchema),
 	productController.updateProduct,
 );
@@ -29,6 +34,7 @@ router.patch(
 router.delete(
 	"/:id",
 	requireApiAuth,
+	requireAdmin,
 	validate(deleteProductSchema),
 	productController.delete,
 );
