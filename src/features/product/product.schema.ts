@@ -15,7 +15,12 @@ export const getProductsSchema = z.object({
 	query: z.object({
 		page: z.coerce.number().int().positive().default(1),
 		limit: z.coerce.number().int().positive().max(100).default(10),
+		search: z.string().optional(),
 		categoryId: z.uuid().min(1).optional(),
+		minPrice: z.coerce.number().nonnegative().optional(),
+		maxPrice: z.coerce.number().nonnegative().optional(),
+		sortBy: z.enum(["price", "createdAt", "name"]).default("createdAt"),
+		sortOrder: z.enum(["desc", "asc"]).default("desc"),
 	}),
 });
 
