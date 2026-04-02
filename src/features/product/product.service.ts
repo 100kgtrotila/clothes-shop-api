@@ -1,3 +1,4 @@
+import type { Prisma } from "@/generated/client.js";
 import { prisma } from "../../db/prisma.js";
 import { NotFoundError } from "../../errors/app.error.js";
 import type {
@@ -8,26 +9,69 @@ import type {
 
 export class ProductService {
 	async getAll(dto: GetProductsDto) {
-		const { page, limit, categoryId } = dto;
+		const {
+			page,
+			limit,
+			search,
+			categoryId,
+			minPrice,
+			maxPrice,
+			sortBy,
+			sortOrder,
+		} = dto;
 		const skip = (page - 1) * limit;
+		const take = limit;
 
-		const where = categoryId ? { categories: { some: { categoryId } } } : {};
+		const where: Prisma.ProductWhereInput = {};
 
-		const [items, total] = await Promise.all([
+		if (search) {
+			where.OR = [
+				{ name: { contains: search, mode: "insensitive" } },
+				{ description: { contains: search, mode: "insensitive" } },
+			];
+		}
+
+		if (categoryId) {
+			where.categories = {
+				some: { categoryId: categoryId },
+			};
+		}
+
+		if (minPrice !== undefined || maxPrice !== undefined) {
+			where.price = {};
+			if (minPrice !== undefined) where.price.lte = minPrice;
+			if (maxPrice !== undefined) where.price.gt = maxPrice;
+		}
+
+		const orderBy: Prisma.ProductOrderByWithRelationInput = {
+			[sortBy]: sortOrder,
+		};
+
+		const [products, total] = await prisma.$transaction([
 			prisma.product.findMany({
-				skip,
-				take: limit,
 				where,
+				skip,
+				take,
+				orderBy,
+				include: {
+					categories: {},
+				},
 			}),
 			prisma.product.count({ where }),
 		]);
 
+		const totalPages = Math.ceil(total / limit);
+
 		return {
-			items,
-			total,
-			page,
-			limit,
-			totalPages: Math.ceil(total / limit),
+			data: products,
+			meta: {
+				total,
+				page,
+				limit,
+				totalPages,
+				hasNextPage: page < totalPages,
+				hasPreviousPage: page > 1,
+			},
 		};
 	}
 
