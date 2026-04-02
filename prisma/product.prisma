@@ -5,7 +5,7 @@ model Product {
   price       Int
   stock       Int                @default(0)
 
-  iamge String[] @default([])
+  images String[] @default([])
 
   createdAt   DateTime           @default(now()) @map("created_at")
   updatedAt   DateTime           @updatedAt @map("updated_at")
