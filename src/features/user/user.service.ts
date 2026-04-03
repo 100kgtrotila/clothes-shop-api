@@ -27,7 +27,7 @@ export class UserService {
 			where: { clerkId },
 			include: {
 				cart: true,
-				// orders: true
+				orders: true,
 			},
 		});
 
