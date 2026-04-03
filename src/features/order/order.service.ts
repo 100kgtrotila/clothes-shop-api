@@ -1,6 +1,8 @@
 import { prisma } from "../../db/prisma.js";
 import { BadRequestError, NotFoundError } from "../../errors/app.error.js";
 import { logger } from "../../utils/logger.js";
+import { stripe } from "../../utils/stripe.js";
+import Stripe from "stripe";
 import type {
 	GetMyOrdersDto,
 	OrderParamsDto,
@@ -11,13 +13,7 @@ export class OrderService {
 	async checkout(userId: string) {
 		const cart = await prisma.cart.findUnique({
 			where: { userId },
-			include: {
-				items: {
-					include: {
-						product: true,
-					},
-				},
-			},
+			include: { items: { include: { product: true } } },
 		});
 
 		if (!cart || cart.items.length === 0) {
@@ -28,55 +24,57 @@ export class OrderService {
 		for (const item of cart.items) {
 			if (item.product.stock < item.quantity) {
 				throw new BadRequestError(
-					`Unfortunately, product "${item.product.name}" only left ${item.product.stock}  (You order ${item.quantity})`,
+					`Unfortunately, product "${item.product.name}" only left ${item.product.stock}`,
 				);
 			}
 			totalAmount += Number(item.product.price) * item.quantity;
 		}
 
-		const order = await prisma.$transaction(async (tx) => {
-			const newOrder = await tx.order.create({
-				data: {
-					userId,
-					total: totalAmount,
-					status: "PENDING",
-					items: {
-						create: cart.items.map((item) => ({
-							productId: item.productId,
-							quantity: item.quantity,
-							price: item.product.price,
-						})),
-					},
+		const order = await prisma.order.create({
+			data: {
+				userId,
+				total: totalAmount,
+				status: "PENDING",
+				items: {
+					create: cart.items.map((item) => ({
+						productId: item.productId,
+						quantity: item.quantity,
+						price: item.product.price,
+					})),
 				},
-				include: {
-					items: true,
-				},
-			});
-
-			for (const item of cart.items) {
-				await tx.product.update({
-					where: { id: item.productId },
-					data: {
-						stock: {
-							decrement: item.quantity,
-						},
-					},
-				});
-			}
-
-			await tx.cartItem.deleteMany({
-				where: { cartId: cart.id },
-			});
-
-			return newOrder;
+			},
 		});
 
-		logger.info(
-			{ userId, orderId: order.id, total: totalAmount },
-			"New order was successfuly created",
-		);
+		const line_items = cart.items.map((item) => ({
+			price_data: {
+				currency: "uah",
+				product_data: { name: item.product.name },
+				unit_amount: Math.round(Number(item.product.price) * 100),
+			},
+			quantity: item.quantity,
+		}));
+		const frontendUrl =
+			process.env.FRONTEND_URLS?.split(",")[0] || "http://localhost:5173";
 
-		return order;
+		try {
+			const session = await stripe.checkout.sessions.create({
+				payment_method_types: ["card"],
+				mode: "payment",
+				line_items,
+				success_url: `${frontendUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+				cancel_url: `${frontendUrl}/cart`,
+				metadata: { orderId: order.id, userId: userId },
+			});
+
+			logger.info({ userId, orderId: order.id }, "Payment session created");
+			return { url: session.url };
+		} catch (error: unknown) {
+			if (error instanceof Stripe.errors.StripeError) {
+				logger.error({ error }, "Stripe API Error during checkout");
+				throw new BadRequestError(`Payment provider error: ${error.message}`);
+			}
+			throw error;
+		}
 	}
 
 	async myOrders(userId: string, dto: GetMyOrdersDto) {
