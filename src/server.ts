@@ -3,12 +3,11 @@ import express from "express";
 import cartRouter from "./features/cart/cart.routes.js";
 import categoryRoutes from "./features/category/category.routes.js";
 import productRoutes from "./features/product/products.routes.js";
-import userController from "./features/user/user.controller.js";
 import userRoutes from "./features/user/user.routes.js";
 import orderRoutes from "./features/order/order.routes.js";
 import uploadRoutes from "./features/upload/upload.routes.js";
+import webhookRoutes from "./features/webhooks/webhook.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
-import { verifyClerkWebhook } from "./middlewares/webhook.middleware.js";
 import { pinoHttp } from "pino-http";
 import { logger } from "./utils/logger.js";
 import cors from "cors";
@@ -26,12 +25,7 @@ app.use(
 	}),
 );
 
-app.post(
-	"/api/users/webhook",
-	express.raw({ type: "application/json" }),
-	verifyClerkWebhook,
-	userController.handleClerkWebhook,
-);
+app.use("/api/webhooks/", webhookRoutes);
 
 app.use(express.json());
 app.use(pinoHttp({ logger }));
