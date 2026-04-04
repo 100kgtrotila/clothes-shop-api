@@ -53,9 +53,15 @@ export class OrderController {
 						});
 					}
 
-					await tx.cartItem.deleteMany({
-						where: { cart: { userId: userId } },
+					const cart = await tx.cart.findUnique({
+						where: { userId: userId },
 					});
+
+					if (cart) {
+						await tx.cartItem.deleteMany({
+							where: { cartId: cart.id },
+						});
+					}
 				});
 
 				logger.info(
