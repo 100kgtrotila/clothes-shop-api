@@ -9,6 +9,7 @@ import {
 import { stripe } from "@/utils/stripe.js";
 import { logger } from "@/utils/logger.js";
 import { prisma } from "../../db/prisma.js";
+import { acquireLock } from "@/utils/redis.js";
 
 export class OrderController {
 	async checkoutCart(req: Request, res: Response) {
@@ -34,12 +35,26 @@ export class OrderController {
 
 		if (event.type === "checkout.session.completed") {
 			const session = event.data.object as any;
-
 			const orderId = session.metadata.orderId;
 			const userId = session.metadata.userId;
 
+			const eventId = event.id;
+
+			const locked = await acquireLock(eventId, 30);
+			if (locked) {
+				logger.warn({ eventId }, "Redis Lock: Duplicate request ignored");
+				return res.json({
+					received: true,
+					message: "Processing already in progress",
+				});
+			}
+
 			try {
 				await prisma.$transaction(async (tx) => {
+					await tx.processedStripeEvent.create({
+						data: { id: eventId },
+					});
+
 					const updatedOrder = await tx.order.update({
 						where: { id: orderId },
 						data: { status: "PAID" },
@@ -62,6 +77,24 @@ export class OrderController {
 							where: { cartId: cart.id },
 						});
 					}
+
+					await tx.outboxEvent.create({
+						data: {
+							type: "ORDER_PARD",
+							payload: {
+								orderId,
+								userId,
+								customerEmail: session.customer_details?.email,
+								amount: session.amount_total,
+							},
+						},
+					});
+
+					logger.info(
+						{ eventId, orderId },
+						"Transaction committed: Logic + Outbox saved",
+					);
+					return res.json({ received: true });
 				});
 
 				logger.info(
