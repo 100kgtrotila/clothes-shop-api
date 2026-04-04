@@ -5,11 +5,17 @@ import type { AddCartItemDto, UpdateCartItemDto } from "./cart.schema.js";
 
 export class CartService {
 	async addItem(userId: string, dto: AddCartItemDto) {
-		const cart = await prisma.cart.findUnique({
+		let cart = await prisma.cart.findUnique({
 			where: { userId },
 		});
 		if (!cart) {
-			throw new NotFoundError("Cart not found");
+			cart = await prisma.cart.create({
+				data: { userId },
+			});
+			logger.info(
+				{ userId },
+				"Lazy initialization: created missing cart for user",
+			);
 		}
 
 		const product = await prisma.product.findUnique({
@@ -66,7 +72,7 @@ export class CartService {
 	}
 
 	async getUserCart(userId: string) {
-		const cart = await prisma.cart.findUnique({
+		let cart = await prisma.cart.findUnique({
 			where: { userId },
 			include: {
 				items: {
@@ -77,7 +83,20 @@ export class CartService {
 			},
 		});
 		if (!cart) {
-			throw new NotFoundError("Cart not found");
+			cart = await prisma.cart.create({
+				data: { userId },
+				include: {
+					items: {
+						include: {
+							product: true,
+						},
+					},
+				},
+			});
+			logger.info(
+				{ userId },
+				"Lazy initialization: created missing cart for user",
+			);
 		}
 		return cart;
 	}
