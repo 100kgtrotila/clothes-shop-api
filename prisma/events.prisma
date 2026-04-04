@@ -1,0 +1,14 @@
+model ProcessedStripeEvent {
+    id  String  @id
+    createdAt   DateTime    @default(now()) @map("created_at")
+    @@map("processed_stripe_events")
+}
+
+model OutboxEvent {
+    id String   @id @default(uuid())
+    type String
+    payload Json
+    processed Boolean @default(false)
+    createdAt   DateTime    @default(now()) @map("created_at")
+    @@map("outbox_event")
+}
