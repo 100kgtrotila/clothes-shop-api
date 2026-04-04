@@ -6,15 +6,72 @@ import {
 	type UpdateStatusOrderBody,
 	type UpdateStatusOrderParams,
 } from "./order.schema.js";
+import { stripe } from "@/utils/stripe.js";
+import { logger } from "@/utils/logger.js";
+import { prisma } from "../../db/prisma.js";
 
 export class OrderController {
 	async checkoutCart(req: Request, res: Response) {
 		const userId = req.user.id;
-		const order = await orderService.checkout(userId);
-		res.status(201).json({
-			status: true,
-			data: order,
-		});
+		const result = await orderService.checkout(userId);
+		res.json(result);
+	}
+
+	async handleStripeWebhook(req: Request, res: Response) {
+		const sig = req.headers["stripe-signature"] as string;
+		let event;
+
+		try {
+			event = stripe.webhooks.constructEvent(
+				req.body,
+				sig,
+				process.env.STRIPE_WEBHOOK_SECRET as string,
+			);
+		} catch (err: any) {
+			logger.error({ err }, "Stripe webhook signature mismatch");
+			return res.status(400).send(`Webhook Error: ${err.message}`);
+		}
+
+		if (event.type === "checkout.session.completed") {
+			const session = event.data.object as any;
+
+			const orderId = session.metadata.orderId;
+			const userId = session.metadata.userId;
+
+			try {
+				await prisma.$transaction(async (tx) => {
+					const updatedOrder = await tx.order.update({
+						where: { id: orderId },
+						data: { status: "PAID" },
+						include: { items: true },
+					});
+
+					for (const item of updatedOrder.items) {
+						await tx.product.update({
+							where: { id: item.productId },
+							data: { stock: { decrement: item.quantity } },
+						});
+					}
+
+					await tx.cartItem.deleteMany({
+						where: { cart: { userId: userId } },
+					});
+				});
+
+				logger.info(
+					{ orderId, userId },
+					"Order successfully PAID and fulfilled!",
+				);
+			} catch (dbError) {
+				logger.error(
+					{ dbError, orderId },
+					"Database error during webhook fulfillment",
+				);
+				return res.status(500).send("Fulfillment failed");
+			}
+		}
+
+		res.json({ received: true });
 	}
 
 	async getMyOrders(req: Request, res: Response) {
