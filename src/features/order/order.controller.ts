@@ -41,7 +41,7 @@ export class OrderController {
 			const eventId = event.id;
 
 			const locked = await acquireLock(eventId, 30);
-			if (locked) {
+			if (!locked) {
 				logger.warn({ eventId }, "Redis Lock: Duplicate request ignored");
 				return res.json({
 					received: true,
