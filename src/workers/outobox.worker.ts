@@ -2,7 +2,7 @@ import { prisma } from "../db/prisma.js";
 import amqp from "amqplib";
 import { logger } from "../utils/logger.js";
 
-async function startOutboxWorker() {
+export async function startOutboxWorker() {
 	const connection = await amqp.connect(
 		process.env.RABBITMQ_URL || "amqp://localhost",
 	);
@@ -36,5 +36,3 @@ async function startOutboxWorker() {
 		}
 	}, 5000);
 }
-
-startOutboxWorker();
