@@ -11,6 +11,7 @@ import { errorHandler } from "./middlewares/error.middleware.js";
 import { pinoHttp } from "pino-http";
 import { logger } from "./utils/logger.js";
 import cors from "cors";
+import { startOutboxWorker } from "./workers/outobox.worker.js";
 
 const app = express();
 const PORT = 3000;
@@ -43,4 +44,7 @@ app.use(errorHandler);
 
 app.listen(PORT, () => {
 	console.log(`Server running on localhost:${PORT}`);
+	startOutboxWorker().catch((err) => {
+		logger.error({ err }, "Failed to start Outbox worker");
+	});
 });
