@@ -80,7 +80,7 @@ export class OrderController {
 
 					await tx.outboxEvent.create({
 						data: {
-							type: "ORDER_PARD",
+							type: "ORDER_PAID",
 							payload: {
 								orderId,
 								userId,
@@ -94,7 +94,6 @@ export class OrderController {
 						{ eventId, orderId },
 						"Transaction committed: Logic + Outbox saved",
 					);
-					return res.json({ received: true });
 				});
 
 				logger.info(
