@@ -13,6 +13,8 @@ model Product {
   cartItems   CartItem[]
   orderItems  OrderItem[]
   @@map("products")
+  @@index([price])
+  @@index([createdAt(sort: Desc)])
 }
 
 model Category {
@@ -30,4 +32,5 @@ model ProductCategory {
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   @@id([productId, categoryId])
   @@map("product_categories")
+  @@index([categoryId])
 }
