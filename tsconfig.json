@@ -17,6 +17,7 @@
         "moduleDetection": "force",
         "skipLibCheck": true,
         "sourceMap": true,
+        "jsx": "react-jsx",
         "declaration": true,
         "declarationMap": true,
         "baseUrl": ".",
