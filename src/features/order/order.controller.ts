@@ -58,8 +58,18 @@ export class OrderController {
 					const updatedOrder = await tx.order.update({
 						where: { id: orderId },
 						data: { status: "PAID" },
-						include: { items: true },
+						include: {
+							items: {
+								include: { product: true },
+							},
+						},
 					});
+
+					const orderItemsForEmail = updatedOrder.items.map((item) => ({
+						name: item.product.name,
+						quantity: item.quantity,
+						price: item.price,
+					}));
 
 					for (const item of updatedOrder.items) {
 						await tx.product.update({
@@ -86,6 +96,7 @@ export class OrderController {
 								userId,
 								customerEmail: session.customer_details?.email,
 								amount: session.amount_total,
+								items: orderItemsForEmail,
 							},
 						},
 					});
