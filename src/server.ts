@@ -12,6 +12,7 @@ import { pinoHttp } from "pino-http";
 import { logger } from "./utils/logger.js";
 import cors from "cors";
 import { startOutboxWorker } from "./workers/outobox.worker.js";
+import { startEmailConsumer } from "./constumers/email.consumer.js";
 
 const app = express();
 const PORT = 3000;
@@ -46,5 +47,8 @@ app.listen(PORT, () => {
 	console.log(`Server running on localhost:${PORT}`);
 	startOutboxWorker().catch((err) => {
 		logger.error({ err }, "Failed to start Outbox worker");
+	});
+	startEmailConsumer().catch((err) => {
+		logger.error({ err }, "Failed to start Email cosnsumer");
 	});
 });
