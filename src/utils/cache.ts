@@ -61,37 +61,26 @@ export class CacheService {
 
 	async invalidateByPrefix(prefix: string): Promise<number> {
 		return new Promise((resolve, reject) => {
-			const keysToDelete: string[] = [];
-
+			let deletedCount = 0;
 			const stream = redis.scanStream({
 				match: `${prefix}*`,
 				count: 100,
 			});
 
-			stream.on("data", (keys: string[]) => {
-				keysToDelete.push(...keys);
+			stream.on("data", async (keys: string[]) => {
+				if (keys.length > 0) {
+					stream.pause();
+					const pipeline = redis.pipeline();
+					keys.forEach((key) => pipeline.del(key));
+					await pipeline.exec();
+					deletedCount += keys.length;
+					stream.resume();
+				}
 			});
 
-			stream.on("end", async () => {
-				if (keysToDelete.length === 0) {
-					logger.info({ prefix }, "No cache keys to invalidate");
-					resolve(0);
-					return;
-				}
-
-				try {
-					const pipeline = redis.pipeline();
-					keysToDelete.forEach((key) => pipeline.del(key));
-					await pipeline.exec();
-
-					logger.info(
-						{ prefix, count: keysToDelete.length },
-						"Cache invalidated via SCAN",
-					);
-					resolve(keysToDelete.length);
-				} catch (err) {
-					reject(err);
-				}
+			stream.on("end", () => {
+				logger.info({ prefix, deletedCount }, "Cache invalidated via SCAN");
+				resolve(deletedCount);
 			});
 			stream.on("error", reject);
 		});
