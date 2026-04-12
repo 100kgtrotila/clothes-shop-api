@@ -188,9 +188,14 @@ export class ProductService {
 			throw new NotFoundError(`Product with id ${id} not found`);
 		}
 
-		return prisma.product.delete({
+		await prisma.product.delete({
 			where: { id },
 		});
+
+		await Promise.all([
+			this.cache.del(CACHE_KEYS.single(id)),
+			this.cache.invalidateByPrefix(CACHE_KEYS.catalog),
+		]);
 	}
 }
 
