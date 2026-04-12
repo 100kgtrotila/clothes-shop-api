@@ -86,6 +86,7 @@ export class OrderService {
 				payment_method_types: ["card"],
 				mode: "payment",
 				line_items,
+				expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
 				success_url: `${frontendUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
 				cancel_url: `${frontendUrl}/cart`,
 				metadata: { orderId: order.id, userId },
