@@ -143,7 +143,7 @@ export class ProductService {
 			throw new NotFoundError(`Product with id ${productId} not found`);
 		}
 
-		return prisma.$transaction(async (tx) => {
+		const result = await prisma.$transaction(async (tx) => {
 			if (dto.categoryIds) {
 				await tx.productCategory.deleteMany({
 					where: { productId, categoryId: { notIn: dto.categoryIds } },
@@ -170,6 +170,13 @@ export class ProductService {
 				},
 			});
 		});
+
+		await Promise.all([
+			this.cache.del(CACHE_KEYS.single(productId)),
+			this.cache.invalidateByPrefix(CACHE_KEYS.catalog),
+		]);
+
+		return result;
 	}
 
 	async delete(id: string) {
