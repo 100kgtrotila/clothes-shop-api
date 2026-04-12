@@ -9,7 +9,6 @@ import {
 import { stripe } from "@/utils/stripe.js";
 import { logger } from "@/utils/logger.js";
 import { acquireLock } from "@/utils/redis.js";
-import { prisma } from "@/db/prisma.js";
 
 export class OrderController {
 	async checkoutCart(req: Request, res: Response) {
@@ -37,7 +36,6 @@ export class OrderController {
 			const session = event.data.object as any;
 			const orderId = session.metadata.orderId;
 			const userId = session.metadata.userId;
-
 			const eventId = event.id;
 
 			const locked = await acquireLock(eventId, 30);
@@ -50,7 +48,7 @@ export class OrderController {
 			}
 
 			try {
-				await orderService.fulfillOrder(event.id, orderId, userId, {
+				await orderService.fulfillOrder(eventId, orderId, userId, {
 					customerEmail: session.customer_details?.email,
 					amountTotal: session.amount_total,
 				});
@@ -59,10 +57,7 @@ export class OrderController {
 				const isDuplicate =
 					err instanceof Error && err.message.includes("Unique constraint");
 				if (isDuplicate) {
-					logger.warn(
-						{ eventId: event.id },
-						"Duplicate webhook ignored (DB constraint)",
-					);
+					logger.warn({ eventId }, "Duplicate webhook ignored (DB constraint)");
 					return res.json({ received: true });
 				}
 				logger.error({ err, orderId }, "Fulfillment failed");
@@ -74,31 +69,7 @@ export class OrderController {
 			const session = event.data.object as any;
 			const orderId = session.metadata.orderId;
 
-			await prisma.$transaction(async (tx) => {
-				const order = await tx.order.findUnique({
-					where: { id: orderId },
-					include: { items: true },
-				});
-
-				if (order && order.status === "PENDING") {
-					for (const item of order.items) {
-						await tx.product.update({
-							where: { id: item.productId },
-							data: { stock: { increment: item.quantity } },
-						});
-					}
-
-					await tx.order.update({
-						where: { id: orderId },
-						data: { status: "CANCELLED" },
-					});
-
-					logger.info(
-						{ orderId },
-						"Session expired: Order CANCELLED, stock released",
-					);
-				}
-			});
+			await orderService.expireOrder(orderId);
 		}
 
 		res.json({ received: true });
