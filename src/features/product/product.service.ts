@@ -11,7 +11,6 @@ import { CacheService } from "@/utils/cache.js";
 const CACHE_KEYS = {
 	catalog: "products:catalog",
 	single: (id: string) => `product:${id}`,
-	catalogLock: "lock:products:catalog:refresh",
 } as const;
 
 export class ProductService {
