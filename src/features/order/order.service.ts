@@ -151,6 +151,34 @@ export class OrderService {
 		});
 	}
 
+	async expireOrder(orderId: string) {
+		await prisma.$transaction(async (tx) => {
+			const order = await tx.order.findUnique({
+				where: { id: orderId },
+				include: { items: true },
+			});
+
+			if (order && order.status === "PENDING") {
+				for (const item of order.items) {
+					await tx.product.update({
+						where: { id: item.productId },
+						data: { stock: { increment: item.quantity } },
+					});
+				}
+
+				await tx.order.update({
+					where: { id: orderId },
+					data: { status: "CANCELLED" },
+				});
+
+				logger.info(
+					{ orderId },
+					"Session expired: Order CANCELLED, stock released",
+				);
+			}
+		});
+	}
+
 	private async releaseStock(
 		reserved: Array<{ productId: string; quantity: number }>,
 	) {
