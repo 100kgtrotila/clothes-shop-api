@@ -23,7 +23,6 @@ router.post(
 router.delete(
 	"/:productId",
 	requireApiAuth,
-	requireAdmin,
 	validate(deleteCartItemSchema),
 	cartController.deleteItem,
 );
@@ -31,7 +30,6 @@ router.delete(
 router.put(
 	"/:productId",
 	requireApiAuth,
-	requireAdmin,
 	validate(updateCartItemSchema),
 	cartController.updateItem,
 );
