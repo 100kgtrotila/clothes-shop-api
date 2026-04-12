@@ -9,6 +9,7 @@ import {
 import { stripe } from "@/utils/stripe.js";
 import { logger } from "@/utils/logger.js";
 import { acquireLock } from "@/utils/redis.js";
+import { prisma } from "@/db/prisma.js";
 
 export class OrderController {
 	async checkoutCart(req: Request, res: Response) {
@@ -67,6 +68,37 @@ export class OrderController {
 				logger.error({ err, orderId }, "Fulfillment failed");
 				return res.status(500).send("Fulfillment failed");
 			}
+		}
+
+		if (event.type === "checkout.session.expired") {
+			const session = event.data.object as any;
+			const orderId = session.metadata.orderId;
+
+			await prisma.$transaction(async (tx) => {
+				const order = await tx.order.findUnique({
+					where: { id: orderId },
+					include: { items: true },
+				});
+
+				if (order && order.status === "PENDING") {
+					for (const item of order.items) {
+						await tx.product.update({
+							where: { id: item.productId },
+							data: { stock: { increment: item.quantity } },
+						});
+					}
+
+					await tx.order.update({
+						where: { id: orderId },
+						data: { status: "CANCELLED" },
+					});
+
+					logger.info(
+						{ orderId },
+						"Session expired: Order CANCELLED, stock released",
+					);
+				}
+			});
 		}
 
 		res.json({ received: true });
