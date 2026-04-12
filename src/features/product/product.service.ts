@@ -6,73 +6,89 @@ import type {
 	GetProductsDto,
 	UpdateProductDto,
 } from "./product.schema.js";
+import { CacheService } from "@/utils/cache.js";
+
+const CACHE_KEYS = {
+	catalog: "products:catalog",
+	single: (id: string) => `product:${id}`,
+	catalogLock: "lock:products:catalog:refresh",
+} as const;
 
 export class ProductService {
+	private cache = new CacheService(3600);
+
 	async getAll(dto: GetProductsDto) {
-		const {
-			page,
-			limit,
-			search,
-			categoryId,
-			minPrice,
-			maxPrice,
-			sortBy,
-			sortOrder,
-		} = dto;
-		const skip = (page - 1) * limit;
-		const take = limit;
+		const cacheKey = this.cache.buildKey(
+			CACHE_KEYS.catalog,
+			dto as Record<string, unknown>,
+		);
 
-		const where: Prisma.ProductWhereInput = {};
-
-		if (search) {
-			where.OR = [
-				{ name: { contains: search, mode: "insensitive" } },
-				{ description: { contains: search, mode: "insensitive" } },
-			];
-		}
-
-		if (categoryId) {
-			where.categories = {
-				some: { categoryId: categoryId },
-			};
-		}
-
-		if (minPrice !== undefined || maxPrice !== undefined) {
-			where.price = {};
-			if (minPrice !== undefined) where.price.lte = minPrice;
-			if (maxPrice !== undefined) where.price.gt = maxPrice;
-		}
-
-		const orderBy: Prisma.ProductOrderByWithRelationInput = {
-			[sortBy]: sortOrder,
-		};
-
-		const [products, total] = await prisma.$transaction([
-			prisma.product.findMany({
-				where,
-				skip,
-				take,
-				orderBy,
-				include: {
-					categories: {},
-				},
-			}),
-			prisma.product.count({ where }),
-		]);
-
-		const totalPages = Math.ceil(total / limit);
-
-		return {
-			data: products,
-			meta: {
-				total,
+		return this.cache.getOrSet(cacheKey, async () => {
+			const {
 				page,
 				limit,
-				totalPages,
-				hasNextPage: page < totalPages,
-				hasPreviousPage: page > 1,
-			},
-		};
+				search,
+				categoryId,
+				minPrice,
+				maxPrice,
+				sortBy,
+				sortOrder,
+			} = dto;
+			const skip = (page - 1) * limit;
+			const take = limit;
+
+			const where: Prisma.ProductWhereInput = {};
+
+			if (search) {
+				where.OR = [
+					{ name: { contains: search, mode: "insensitive" } },
+					{ description: { contains: search, mode: "insensitive" } },
+				];
+			}
+
+			if (categoryId) {
+				where.categories = {
+					some: { categoryId: categoryId },
+				};
+			}
+
+			if (minPrice !== undefined || maxPrice !== undefined) {
+				where.price = {};
+				if (minPrice !== undefined) where.price.gte = minPrice;
+				if (maxPrice !== undefined) where.price.lte = maxPrice;
+			}
+
+			const orderBy: Prisma.ProductOrderByWithRelationInput = {
+				[sortBy]: sortOrder,
+			};
+
+			const [products, total] = await prisma.$transaction([
+				prisma.product.findMany({
+					where,
+					skip,
+					take,
+					orderBy,
+					include: {
+						categories: {},
+					},
+				}),
+				prisma.product.count({ where }),
+			]);
+
+			const totalPages = Math.ceil(total / limit);
+
+			return {
+				data: products,
+				meta: {
+					total,
+					page,
+					limit,
+					totalPages,
+					hasNextPage: page < totalPages,
+					hasPreviousPage: page > 1,
+				},
+			};
+		});
 	}
 
 	async getById(id: string) {
