@@ -1,4 +1,4 @@
-import type { Prisma } from "@/generated/client.js";
+import { Prisma } from "@/generated/client.js";
 import { prisma } from "../../db/prisma.js";
 import { NotFoundError } from "../../errors/app.error.js";
 import type {
@@ -92,26 +92,28 @@ export class ProductService {
 	}
 
 	async getById(id: string) {
-		const product = await prisma.product.findUnique({
-			where: { id: id },
-			include: {
-				categories: {
-					include: { category: true },
+		return this.cache.getOrSet(CACHE_KEYS.single(id), async () => {
+			const product = await prisma.product.findUnique({
+				where: { id: id },
+				include: {
+					categories: {
+						include: { category: true },
+					},
 				},
-			},
+			});
+
+			if (!product) {
+				throw new NotFoundError(`Product with id ${id} not found`);
+			}
+
+			return product;
 		});
-
-		if (!product) {
-			throw new NotFoundError(`Product with id ${id} not found`);
-		}
-
-		return product;
 	}
 
 	async create(dto: CreateProductDto) {
 		const { categoryIds, stock, description, ...productData } = dto;
 
-		return prisma.product.create({
+		const newProduct = await prisma.product.create({
 			data: {
 				...productData,
 				description: description ?? null,
@@ -126,6 +128,10 @@ export class ProductService {
 				},
 			},
 		});
+
+		await this.cache.invalidateByPrefix(CACHE_KEYS.catalog);
+
+		return newProduct;
 	}
 
 	async update(productId: string, dto: UpdateProductDto) {
