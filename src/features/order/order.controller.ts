@@ -8,7 +8,6 @@ import {
 } from "./order.schema.js";
 import { stripe } from "@/utils/stripe.js";
 import { logger } from "@/utils/logger.js";
-import { prisma } from "../../db/prisma.js";
 import { acquireLock } from "@/utils/redis.js";
 
 export class OrderController {
@@ -50,72 +49,22 @@ export class OrderController {
 			}
 
 			try {
-				await prisma.$transaction(async (tx) => {
-					await tx.processedStripeEvent.create({
-						data: { id: eventId },
-					});
-
-					const updatedOrder = await tx.order.update({
-						where: { id: orderId },
-						data: { status: "PAID" },
-						include: {
-							items: {
-								include: { product: true },
-							},
-						},
-					});
-
-					const orderItemsForEmail = updatedOrder.items.map((item) => ({
-						name: item.product.name,
-						quantity: item.quantity,
-						price: item.price,
-					}));
-
-					for (const item of updatedOrder.items) {
-						await tx.product.update({
-							where: { id: item.productId },
-							data: { stock: { decrement: item.quantity } },
-						});
-					}
-
-					const cart = await tx.cart.findUnique({
-						where: { userId: userId },
-					});
-
-					if (cart) {
-						await tx.cartItem.deleteMany({
-							where: { cartId: cart.id },
-						});
-					}
-
-					await tx.outboxEvent.create({
-						data: {
-							type: "ORDER_PAID",
-							payload: {
-								orderId,
-								userId,
-								customerEmail: session.customer_details?.email,
-								amount: session.amount_total,
-								items: orderItemsForEmail,
-							},
-						},
-					});
-
-					logger.info(
-						{ eventId, orderId },
-						"Transaction committed: Logic + Outbox saved",
-					);
+				await orderService.fulfillOrder(event.id, orderId, userId, {
+					customerEmail: session.customer_details?.email,
+					amountTotal: session.amount_total,
 				});
-
-				logger.info(
-					{ orderId, userId },
-					"Order successfully PAID and fulfilled!",
-				);
-			} catch (dbError) {
-				logger.error(
-					{ dbError, orderId },
-					"Database error during webhook fulfillment",
-				);
+				logger.info({ orderId, userId }, "Order fulfilled successfully");
+			} catch (err) {
+				const isDuplicate =
+					err instanceof Error && err.message.includes("Unique constraint");
+				if (isDuplicate) {
+					logger.warn(
+						{ eventId: event.id },
+						"Duplicate webhook ignored (DB constraint)",
+					);
+					return res.json({ received: true });
+				}
+				logger.error({ err, orderId }, "Fulfillment failed");
 				return res.status(500).send("Fulfillment failed");
 			}
 		}
