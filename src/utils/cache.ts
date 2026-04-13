@@ -71,7 +71,9 @@ export class CacheService {
 				if (keys.length > 0) {
 					stream.pause();
 					const pipeline = redis.pipeline();
-					keys.forEach((key) => pipeline.del(key));
+					for (const key of keys) {
+						pipeline.del(key);
+					}
 					await pipeline.exec();
 					deletedCount += keys.length;
 					stream.resume();

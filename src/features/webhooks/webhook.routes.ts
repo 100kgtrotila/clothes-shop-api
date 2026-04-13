@@ -1,8 +1,7 @@
-import { Router } from "express";
-import express from "express";
+import express, { Router } from "express";
 import { verifyClerkWebhook } from "../../middlewares/webhook.middleware.js";
-import userController from "../user/user.controller.js";
 import orderController from "../order/order.controller.js";
+import userController from "../user/user.controller.js";
 
 const webhookRouter = Router();
 

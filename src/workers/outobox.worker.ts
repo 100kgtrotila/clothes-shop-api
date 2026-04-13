@@ -1,5 +1,5 @@
-import { prisma } from "../db/prisma.js";
 import amqp from "amqplib";
+import { prisma } from "../db/prisma.js";
 import { logger } from "../utils/logger.js";
 
 export async function startOutboxWorker() {

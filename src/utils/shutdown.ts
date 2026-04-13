@@ -1,6 +1,6 @@
-import { Server } from "http";
-import { logger } from "./logger.js";
+import type { Server } from "node:http";
 import { prisma } from "../db/prisma.js";
+import { logger } from "./logger.js";
 import { redis } from "./redis.js";
 
 export const setupGracefulShutdown = (server: Server) => {

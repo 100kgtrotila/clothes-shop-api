@@ -1,20 +1,20 @@
 import { clerkMiddleware } from "@clerk/express";
+import cors from "cors";
 import express from "express";
+import { pinoHttp } from "pino-http";
+import { startEmailConsumer } from "./consumers/email.consumer.js";
 import cartRouter from "./features/cart/cart.routes.js";
 import categoryRoutes from "./features/category/category.routes.js";
-import productRoutes from "./features/product/products.routes.js";
-import userRoutes from "./features/user/user.routes.js";
 import orderRoutes from "./features/order/order.routes.js";
+import productRoutes from "./features/product/products.routes.js";
 import uploadRoutes from "./features/upload/upload.routes.js";
+import userRoutes from "./features/user/user.routes.js";
 import webhookRoutes from "./features/webhooks/webhook.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
-import { pinoHttp } from "pino-http";
-import { logger } from "./utils/logger.js";
-import cors from "cors";
-import { startOutboxWorker } from "./workers/outobox.worker.js";
-import { startEmailConsumer } from "./consumers/email.consumer.js";
-import { setupGracefulShutdown } from "./utils/shutdown.js";
 import { globalLimiter } from "./middlewares/rate.limit.middleware.js";
+import { logger } from "./utils/logger.js";
+import { setupGracefulShutdown } from "./utils/shutdown.js";
+import { startOutboxWorker } from "./workers/outobox.worker.js";
 
 const app = express();
 const PORT = 3000;
