@@ -26,10 +26,10 @@ export const setupGracefulShutdown = (server: Server) => {
 
 			try {
 				await prisma.$disconnect();
-				logger.error("Prisma disconnected");
+				logger.info("Prisma disconnected");
 
 				await redis.quit();
-				logger.error("Redis disconnected");
+				logger.info("Redis disconnected");
 				logger.info("Graceful shutdown complete. Exiting process.");
 				process.exit(0);
 			} catch (shutdownError) {
