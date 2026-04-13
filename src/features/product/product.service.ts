@@ -1,5 +1,6 @@
 import type { Prisma } from "@/generated/client.js";
 import { CacheService } from "@/utils/cache.js";
+import { meiliClient } from "@/utils/meilisearch.js";
 import { prisma } from "../../db/prisma.js";
 import { NotFoundError } from "../../errors/app.error.js";
 import type {
@@ -39,10 +40,26 @@ export class ProductService {
 			const where: Prisma.ProductWhereInput = {};
 
 			if (search) {
-				where.OR = [
-					{ name: { contains: search, mode: "insensitive" } },
-					{ description: { contains: search, mode: "insensitive" } },
-				];
+				const meiliResult = await meiliClient.index("products").search(search, {
+					limit: 1000,
+				});
+
+				const matchedIds = meiliResult.hits.map((hit) => hit.id as string);
+				if (matchedIds.length === 0) {
+					return {
+						data: [],
+						meta: {
+							total: 0,
+							page,
+							limit,
+							totalPages: 0,
+							hasNextPage: false,
+							hasPreviousPage: false,
+						},
+					};
+				}
+
+				where.id = { in: matchedIds };
 			}
 
 			if (categoryId) {
@@ -112,20 +129,34 @@ export class ProductService {
 	async create(dto: CreateProductDto) {
 		const { categoryIds, stock, description, ...productData } = dto;
 
-		const newProduct = await prisma.product.create({
-			data: {
-				...productData,
-				description: description ?? null,
-				...(stock !== undefined && { stock }),
-				categories: {
-					create: categoryIds.map((categoryId) => ({ categoryId })),
+		const newProduct = prisma.$transaction(async (tx) => {
+			const product = await tx.product.create({
+				data: {
+					...productData,
+					description: description ?? null,
+					...(stock !== undefined && { stock }),
+					categories: {
+						create: categoryIds.map((categoryId) => ({ categoryId })),
+					},
 				},
-			},
-			include: {
-				categories: {
-					include: { category: true },
+				include: {
+					categories: { include: { category: true } },
 				},
-			},
+			});
+
+			await tx.outboxEvent.create({
+				data: {
+					type: "PRODUCT_CREATED",
+					payload: {
+						id: product.id,
+						name: product.name,
+						description: product.description,
+						price: product.price,
+						image: product.images[0] || null,
+					},
+				},
+			});
+			return product;
 		});
 
 		await this.cache.invalidateByPrefix(CACHE_KEYS.catalog);
@@ -170,6 +201,13 @@ export class ProductService {
 			});
 		});
 
+		await meiliClient.index("products").updateDocuments([
+			{
+				id: result.id,
+				...dto,
+			},
+		]);
+
 		await Promise.all([
 			this.cache.del(CACHE_KEYS.single(productId)),
 			this.cache.invalidateByPrefix(CACHE_KEYS.catalog),
@@ -191,6 +229,7 @@ export class ProductService {
 			where: { id },
 		});
 
+		await meiliClient.index("products").deleteDocument(id);
 		await Promise.all([
 			this.cache.del(CACHE_KEYS.single(id)),
 			this.cache.invalidateByPrefix(CACHE_KEYS.catalog),
