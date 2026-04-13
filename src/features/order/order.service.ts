@@ -1,8 +1,8 @@
+import Stripe from "stripe";
 import { prisma } from "../../db/prisma.js";
 import { BadRequestError, NotFoundError } from "../../errors/app.error.js";
 import { logger } from "../../utils/logger.js";
 import { stripe } from "../../utils/stripe.js";
-import Stripe from "stripe";
 import type {
 	GetMyOrdersDto,
 	OrderParamsDto,
@@ -39,7 +39,7 @@ export class OrderService {
 				if (result.count === 0) {
 					await this.releaseStock(reserved);
 					throw new BadRequestError(
-						`На жаль, "${item.product.name}" вже немає в достатній кількості`,
+						`Unfortunately, "${item.product.name}" is no longer available in sufficient quantity`,
 					);
 				}
 

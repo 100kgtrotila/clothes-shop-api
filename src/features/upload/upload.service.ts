@@ -1,5 +1,5 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import crypto from "crypto";
+import crypto from "node:crypto";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const s3Client = new S3Client({
 	region: process.env.AWS_REGION!,
@@ -18,7 +18,7 @@ export const uploadFileToS3 = async (
 ): Promise<string> => {
 	const safeFileName = fileName
 		.replace(/\s+/g, "-")
-		.replace(/[^a-zA-Z0-9.\-]/g, "");
+		.replace(/[^a-zA-Z0-9.-]/g, "");
 
 	const uniqueFileName = `${crypto.randomBytes(16).toString("hex")}-${safeFileName}`;
 

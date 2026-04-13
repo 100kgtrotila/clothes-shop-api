@@ -1,4 +1,5 @@
-import { Prisma } from "@/generated/client.js";
+import type { Prisma } from "@/generated/client.js";
+import { CacheService } from "@/utils/cache.js";
 import { prisma } from "../../db/prisma.js";
 import { NotFoundError } from "../../errors/app.error.js";
 import type {
@@ -6,7 +7,6 @@ import type {
 	GetProductsDto,
 	UpdateProductDto,
 } from "./product.schema.js";
-import { CacheService } from "@/utils/cache.js";
 
 const CACHE_KEYS = {
 	catalog: "products:catalog",
