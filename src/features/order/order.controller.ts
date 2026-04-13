@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import type Stripe from "stripe";
 import { logger } from "@/utils/logger.js";
 import { acquireLock } from "@/utils/redis.js";
 import { stripe } from "@/utils/stripe.js";
@@ -19,7 +20,7 @@ export class OrderController {
 
 	async handleStripeWebhook(req: Request, res: Response) {
 		const sig = req.headers["stripe-signature"] as string;
-		let event;
+		let event: Stripe.Event;
 
 		try {
 			event = stripe.webhooks.constructEvent(
