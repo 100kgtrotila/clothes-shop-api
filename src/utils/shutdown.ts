@@ -22,7 +22,7 @@ export const setupGracefulShutdown = (server: Server) => {
 				process.exit(1);
 			}
 
-			logger.info("xpress server closed (no new requests accepted)");
+			logger.info("Express server closed (no new requests accepted)");
 
 			try {
 				await prisma.$disconnect();
