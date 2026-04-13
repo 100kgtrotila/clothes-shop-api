@@ -7,6 +7,7 @@ import {
 	getOrderByIdSchema,
 	updateStatusOrderSchema,
 } from "./order.schema.js";
+import { checkoutLimiter } from "@/middlewares/rate.limit.middleware.js";
 
 const router = Router();
 
@@ -16,7 +17,12 @@ router.get(
 	validate(getMyOrdersSchema),
 	orderController.getMyOrders,
 );
-router.post("/checkout", requireApiAuth, orderController.checkoutCart);
+router.post(
+	"/checkout",
+	requireApiAuth,
+	checkoutLimiter,
+	orderController.checkoutCart,
+);
 router.get(
 	"/:id",
 	requireApiAuth,
