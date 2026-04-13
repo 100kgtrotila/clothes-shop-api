@@ -10,9 +10,15 @@ export async function startOutboxWorker() {
 	const channel = await connection.createChannel();
 	const queue = "order_notifications";
 
-	await channel.assertQueue(queue, { durable: true });
+	await channel.assertQueue(queue, {
+		durable: true,
+		arguments: {
+			"x-dead-letter-exchange": "dlx",
+			"x-dead-letter-routing-key": "dead_letter",
+		},
+	});
 
-	logger.info("Outbox worker  started");
+	logger.info("Outbox worker started");
 
 	setInterval(async () => {
 		const events = await prisma.outboxEvent.findMany({
