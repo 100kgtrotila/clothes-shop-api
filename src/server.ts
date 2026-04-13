@@ -13,6 +13,7 @@ import { logger } from "./utils/logger.js";
 import cors from "cors";
 import { startOutboxWorker } from "./workers/outobox.worker.js";
 import { startEmailConsumer } from "./constumers/email.consumer.js";
+import { setupGracefulShutdown } from "./utils/shutdown.js";
 
 const app = express();
 const PORT = 3000;
@@ -43,12 +44,14 @@ app.use("/api/upload", uploadRoutes);
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-	console.log(`Server running on localhost:${PORT}`);
+const server = app.listen(PORT, () => {
+	logger.info(`Server running on localhost:${PORT}`);
+
 	startOutboxWorker().catch((err) => {
 		logger.error({ err }, "Failed to start Outbox worker");
 	});
 	startEmailConsumer().catch((err) => {
-		logger.error({ err }, "Failed to start Email cosnsumer");
+		logger.error({ err }, "Failed to start Email consumer");
 	});
 });
+setupGracefulShutdown(server);
