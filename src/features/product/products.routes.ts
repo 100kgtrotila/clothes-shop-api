@@ -1,7 +1,8 @@
 import { Router } from "express";
+import { publicReadLimiter } from "@/middlewares/rate.limit.middleware.js";
 import {
-	requireApiAuth,
 	requireAdmin,
+	requireApiAuth,
 } from "../../middlewares/auth.middleware.js";
 import { validate } from "../../middlewares/validate.js";
 import productController from "./product.controller.js";
@@ -10,7 +11,6 @@ import {
 	deleteProductSchema,
 	updateProductSchema,
 } from "./product.schema.js";
-import { publicReadLimiter } from "@/middlewares/rate.limit.middleware.js";
 
 const router = Router();
 

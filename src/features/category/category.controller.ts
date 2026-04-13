@@ -1,9 +1,9 @@
 import type { Request, Response } from "express";
-import categoryService from "./category.service.js";
 import type {
 	CategoryParamsDto,
 	CreateCategoryDto,
 } from "./category.schema.js";
+import categoryService from "./category.service.js";
 
 export class CategoryController {
 	async getAllCategories(_req: Request, res: Response) {

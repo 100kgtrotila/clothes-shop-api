@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
+import multer from "multer";
 import { AppError } from "../../errors/app.error.js";
 import { uploadFileToS3 } from "./upload.service.js";
-import multer from "multer";
 
 export class UploadController {
 	async uploadImage(req: Request, res: Response) {

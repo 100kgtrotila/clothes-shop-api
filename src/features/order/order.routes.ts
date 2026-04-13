@@ -1,13 +1,13 @@
 import { Router } from "express";
-import orderController from "./order.controller.js";
-import { requireApiAuth, requireAdmin } from "@/middlewares/auth.middleware.js";
+import { requireAdmin, requireApiAuth } from "@/middlewares/auth.middleware.js";
+import { checkoutLimiter } from "@/middlewares/rate.limit.middleware.js";
 import { validate } from "@/middlewares/validate.js";
+import orderController from "./order.controller.js";
 import {
 	getMyOrdersSchema,
 	getOrderByIdSchema,
 	updateStatusOrderSchema,
 } from "./order.schema.js";
-import { checkoutLimiter } from "@/middlewares/rate.limit.middleware.js";
 
 const router = Router();
 

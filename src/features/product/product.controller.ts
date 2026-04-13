@@ -2,8 +2,8 @@ import type { Request, Response } from "express";
 import {
 	deleteProductSchema,
 	getProductsSchema,
-	updateProductSchema,
 	type ProductParamsDto,
+	updateProductSchema,
 } from "./product.schema.js";
 import productService from "./product.service.js";
 

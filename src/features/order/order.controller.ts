@@ -1,14 +1,14 @@
 import type { Request, Response } from "express";
-import orderService from "./order.service.js";
-import {
-	type GetMyOrdersDto,
-	type OrderParamsDto,
-	type UpdateStatusOrderBody,
-	type UpdateStatusOrderParams,
-} from "./order.schema.js";
-import { stripe } from "@/utils/stripe.js";
 import { logger } from "@/utils/logger.js";
 import { acquireLock } from "@/utils/redis.js";
+import { stripe } from "@/utils/stripe.js";
+import type {
+	GetMyOrdersDto,
+	OrderParamsDto,
+	UpdateStatusOrderBody,
+	UpdateStatusOrderParams,
+} from "./order.schema.js";
+import orderService from "./order.service.js";
 
 export class OrderController {
 	async checkoutCart(req: Request, res: Response) {

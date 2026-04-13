@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {
-	requireApiAuth,
 	requireAdmin,
+	requireApiAuth,
 } from "../../middlewares/auth.middleware.js";
 import { validate } from "../../middlewares/validate.js";
 import categoryController from "./category.controller.js";

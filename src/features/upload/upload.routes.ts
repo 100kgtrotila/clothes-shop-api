@@ -1,8 +1,8 @@
 import { Router } from "express";
 import multer from "multer";
 import {
-	requireApiAuth,
 	requireAdmin,
+	requireApiAuth,
 } from "../../middlewares/auth.middleware.js";
 import uploadController from "./upload.controller.js";
 
