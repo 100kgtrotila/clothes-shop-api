@@ -12,7 +12,7 @@ import { pinoHttp } from "pino-http";
 import { logger } from "./utils/logger.js";
 import cors from "cors";
 import { startOutboxWorker } from "./workers/outobox.worker.js";
-import { startEmailConsumer } from "./constumers/email.consumer.js";
+import { startEmailConsumer } from "./consumers/email.consumer.js";
 import { setupGracefulShutdown } from "./utils/shutdown.js";
 import { globalLimiter } from "./middlewares/rate.limit.middleware.js";
 
