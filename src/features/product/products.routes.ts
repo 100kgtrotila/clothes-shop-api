@@ -10,12 +10,12 @@ import {
 	deleteProductSchema,
 	updateProductSchema,
 } from "./product.schema.js";
+import { publicReadLimiter } from "@/middlewares/rate.limit.middleware.js";
 
 const router = Router();
 
-router.get("/", productController.getAllProducts);
-router.get("/:id", productController.getProductById);
-
+router.get("/", publicReadLimiter, productController.getAllProducts);
+router.get("/:id", publicReadLimiter, productController.getProductById);
 router.post(
 	"/",
 	requireApiAuth,
