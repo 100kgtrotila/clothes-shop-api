@@ -1,7 +1,7 @@
+import { render } from "@react-email/render";
 import amqp from "amqplib";
 import { Resend } from "resend";
 import { logger } from "@/utils/logger.js";
-import { render } from "@react-email/render";
 import { ReceiptEmail } from "../templates/ReceiptEmail.js";
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
@@ -73,7 +73,7 @@ export async function startEmailConsumer() {
 				logger.error({ retries }, `Max retries (${MAX_RETRIES}) reached → DLQ`);
 				channel.nack(msg, false, false);
 			} else {
-				const delayMs = Math.pow(2, retries) * 60 * 1000;
+				const delayMs = 2 ** retries * 60 * 1000;
 
 				setTimeout(() => {
 					channel.publish("", QUEUE, msg.content, {
