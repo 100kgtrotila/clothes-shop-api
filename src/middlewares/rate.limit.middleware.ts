@@ -1,4 +1,4 @@
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { RedisStore } from "rate-limit-redis";
 import { redis } from "@/utils/redis.js";
 
@@ -15,10 +15,7 @@ export const globalLimiter = rateLimit({
 	standardHeaders: "draft-7",
 	legacyHeaders: false,
 	store: redisStore("global"),
-	message: {
-		success: false,
-		message: "Too much requests",
-	},
+	message: { success: false, message: "Too much requests" },
 });
 
 export const checkoutLimiter = rateLimit({
@@ -27,11 +24,8 @@ export const checkoutLimiter = rateLimit({
 	standardHeaders: "draft-7",
 	legacyHeaders: false,
 	store: redisStore("checkout"),
-	keyGenerator: (req) => req.user?.id ?? req.ip ?? "anonymous",
-	message: {
-		success: false,
-		message: "Too much requests",
-	},
+	keyGenerator: (req) => req.user?.id ?? ipKeyGenerator(req.ip ?? ""),
+	message: { success: false, message: "Too much requests" },
 });
 
 export const publicReadLimiter = rateLimit({
@@ -40,8 +34,5 @@ export const publicReadLimiter = rateLimit({
 	standardHeaders: "draft-7",
 	legacyHeaders: false,
 	store: redisStore("public"),
-	message: {
-		success: false,
-		message: "Забагато запитів",
-	},
+	message: { success: false, message: "Забагато запитів" },
 });
