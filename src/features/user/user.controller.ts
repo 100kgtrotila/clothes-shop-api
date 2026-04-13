@@ -6,7 +6,14 @@ import userService from "./user.service.js";
 export class UserController {
 	async handleClerkWebhook(req: WebhookRequest, res: Response): Promise<void> {
 		try {
-			const event = req.clerkEvent!;
+			const event = req.clerkEvent;
+
+			if (!event) {
+				res
+					.status(400)
+					.json({ success: false, message: "Missing webhook event" });
+				return;
+			}
 
 			await userService.handleEvent(event);
 
@@ -29,7 +36,7 @@ export class UserController {
 			const user = await userService.getCurrentUser(userId);
 
 			res.status(200).json({ success: true, data: user });
-		} catch (error) {
+		} catch {
 			res.status(404).json({ success: false, message: "User not found" });
 		}
 	}
