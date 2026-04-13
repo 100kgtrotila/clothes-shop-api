@@ -14,6 +14,7 @@ import cors from "cors";
 import { startOutboxWorker } from "./workers/outobox.worker.js";
 import { startEmailConsumer } from "./constumers/email.consumer.js";
 import { setupGracefulShutdown } from "./utils/shutdown.js";
+import { globalLimiter } from "./middlewares/rate.limit.middleware.js";
 
 const app = express();
 const PORT = 3000;
@@ -27,7 +28,7 @@ app.use(
 		credentials: true,
 	}),
 );
-
+app.use(globalLimiter);
 app.use("/api/webhooks/", webhookRoutes);
 
 app.use(express.json());
