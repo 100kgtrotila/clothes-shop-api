@@ -16,15 +16,24 @@ export async function startEmailConsumer() {
 		process.env.RABBITMQ_URL || "amqp://localhost",
 	);
 	const channel = await connection.createChannel();
+
+	const EXCHANGE_NAME = "shop_events";
+	const QUEUE_NAME = "order_notifications";
+
 	await channel.assertExchange(DLX, "direct", { durable: true });
 	await channel.assertQueue(DLQ, { durable: true });
 	await channel.bindQueue(DLQ, DLX, "dead_letter");
 
-	await channel.assertQueue(QUEUE, {
+	await channel.assertExchange(EXCHANGE_NAME, "topic", { durable: true });
+	await channel.assertQueue(QUEUE_NAME, {
 		durable: true,
-		deadLetterExchange: DLX,
-		deadLetterRoutingKey: "dead_letter",
+		arguments: {
+			"x-dead-letter-exchange": DLX,
+			"x-dead-letter-routing-key": "dead_letter",
+		},
 	});
+
+	await channel.bindQueue(QUEUE_NAME, EXCHANGE_NAME, "order.*");
 
 	channel.prefetch(1);
 
