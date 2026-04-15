@@ -8,30 +8,32 @@ export async function startMeiliConsumer() {
 	);
 	const channel = await connection.createChannel();
 
-	const queue = "meili_sync";
-	await channel.assertQueue(queue, { durable: true });
+	const EXCHANGE_NAME = "shop_events";
+	const QUEUE_NAME = "meili_sync";
 
-	logger.info("Meilisearch Consumer started");
+	await channel.assertExchange(EXCHANGE_NAME, "topic", { durable: true });
+	await channel.assertQueue(QUEUE_NAME, { durable: true });
+	await channel.bindQueue(QUEUE_NAME, EXCHANGE_NAME, "product.*");
 
-	channel.consume(queue, async (msg) => {
+	logger.info("Meilisearch Consumer started. Listening for 'product.*' events");
+
+	channel.consume(QUEUE_NAME, async (msg) => {
 		if (msg !== null) {
 			try {
-				const event = JSON.parse(msg.content.toString());
+				const eventData = JSON.parse(msg.content.toString());
+				const routingKey = msg.fields.routingKey;
+
 				if (
-					event.type === "PRODUCT_CREATED" ||
-					event.type === "PRODUCT_UPDATED"
+					routingKey === "product.created" ||
+					routingKey === "product.updated"
 				) {
-					await meiliClient.index("products").addDocuments([event.payload]);
-					logger.info(
-						{ productId: event.payload.id },
-						"Product synced to Meilisearch",
-					);
-				} else if (event.type === "PRODUCT_DELETED") {
-					await meiliClient.index("products").deleteDocument(event.payload.id);
-					logger.info(
-						{ productId: event.payload.id },
-						"Product removed from Meilisearch",
-					);
+					await meiliClient.index("products").addDocuments([eventData]);
+					logger.info({ id: eventData.id }, "Product synced to Meilisearch");
+				}
+
+				if (routingKey === "product.deleted") {
+					await meiliClient.index("prodcuts").deleteDocument(eventData.id);
+					logger.info({ id: eventData.id }, "Product removed from Meilisearch");
 				}
 
 				channel.ack(msg);
