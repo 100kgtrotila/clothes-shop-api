@@ -8,15 +8,9 @@ export async function startOutboxWorker() {
 	);
 
 	const channel = await connection.createChannel();
-	const queue = "order_notifications";
+	const EXCHANGE_NAME = "shop_events";
 
-	await channel.assertQueue(queue, {
-		durable: true,
-		arguments: {
-			"x-dead-letter-exchange": "dlx",
-			"x-dead-letter-routing-key": "dead_letter",
-		},
-	});
+	await channel.assertExchange(EXCHANGE_NAME, "topic", { durable: true });
 
 	logger.info("Outbox worker started");
 
@@ -28,16 +22,25 @@ export async function startOutboxWorker() {
 
 		for (const event of events) {
 			try {
-				const messsge = JSON.stringify(event.payload);
-				channel.sendToQueue(queue, Buffer.from(messsge), { persistent: true });
+				const message = JSON.stringify(event.payload);
+
+				channel.publish(
+					EXCHANGE_NAME,
+					event.type.toLocaleLowerCase(),
+					Buffer.from(message),
+					{ persistent: true },
+				);
+				logger.info(
+					{ eventId: event.id, routingKey: event.type },
+					"Event published to Exchange",
+				);
+
 				await prisma.outboxEvent.update({
 					where: { id: event.id },
 					data: { processed: true },
 				});
-
-				logger.info({ eventId: event.id }, "Event pushed to RabbitMQ");
 			} catch (err) {
-				logger.error({ err }, "Failed to push event to RabbitMQ");
+				logger.error({ err, eventId: event.id }, "Failed to publish event");
 			}
 		}
 	}, 5000);
