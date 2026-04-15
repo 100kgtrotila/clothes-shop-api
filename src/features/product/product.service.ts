@@ -146,7 +146,7 @@ export class ProductService {
 
 			await tx.outboxEvent.create({
 				data: {
-					type: "PRODUCT_CREATED",
+					type: "product.created",
 					payload: {
 						id: product.id,
 						name: product.name,

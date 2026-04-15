@@ -129,7 +129,7 @@ export class OrderService {
 
 			await tx.outboxEvent.create({
 				data: {
-					type: "ORDER_PAID",
+					type: "order.paid",
 					payload: {
 						orderId,
 						userId,
