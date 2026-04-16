@@ -26,7 +26,7 @@ export const getProductsSchema = z.object({
 
 export const getProductByIdSchema = z.object({
 	params: z.object({
-		id: z.uuid(),
+		id: z.string().min(1, "Identifier is required"),
 	}),
 });
 
