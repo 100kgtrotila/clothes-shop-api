@@ -16,7 +16,7 @@ export class productController {
 
 	async getProductById(req: Request, res: Response) {
 		const { id } = req.params as unknown as ProductParamsDto;
-		const result = await productService.getById(id);
+		const result = await productService.getByIdOrSlug(id);
 		res.status(200).json({
 			success: true,
 			data: result,
