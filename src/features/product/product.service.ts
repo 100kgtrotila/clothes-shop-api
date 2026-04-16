@@ -1,3 +1,5 @@
+import { nanoid } from "nanoid";
+import slugify from "slugify";
 import type { Prisma } from "@/generated/client.js";
 import { CacheService } from "@/utils/cache.js";
 import { meiliClient } from "@/utils/meilisearch.js";
@@ -107,10 +109,12 @@ export class ProductService {
 		});
 	}
 
-	async getById(id: string) {
+	async getByIdOrSlug(id: string) {
 		return this.cache.getOrSet(CACHE_KEYS.single(id), async () => {
-			const product = await prisma.product.findUnique({
-				where: { id: id },
+			const product = await prisma.product.findFirst({
+				where: {
+					OR: [{ id: id }, { slug: id }],
+				},
 				include: {
 					categories: {
 						include: { category: true },
@@ -119,7 +123,7 @@ export class ProductService {
 			});
 
 			if (!product) {
-				throw new NotFoundError(`Product with id ${id} not found`);
+				throw new NotFoundError(`Product with id or slug ${id} not found`);
 			}
 
 			return product;
@@ -129,10 +133,19 @@ export class ProductService {
 	async create(dto: CreateProductDto) {
 		const { categoryIds, stock, description, ...productData } = dto;
 
+		const baseSlug = slugify(dto.name, {
+			lower: true,
+			strict: true,
+			locale: "uk",
+		});
+
+		const uniqueSlug = `${baseSlug}-${nanoid(5).toLocaleLowerCase()}`;
+
 		const newProduct = prisma.$transaction(async (tx) => {
 			const product = await tx.product.create({
 				data: {
 					...productData,
+					slug: uniqueSlug,
 					description: description ?? null,
 					...(stock !== undefined && { stock }),
 					categories: {
