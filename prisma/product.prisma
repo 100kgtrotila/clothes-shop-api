@@ -6,6 +6,9 @@ model Product {
   price       Int
   stock       Int                @default(0)
 
+  averageRating Float    @default(0) @map("average_rating")
+  reviewCount   Int      @default(0) @map("review_count")
+
   images String[] @default([])
 
   createdAt   DateTime           @default(now()) @map("created_at")
@@ -13,6 +16,7 @@ model Product {
   categories  ProductCategory[]
   cartItems   CartItem[]
   orderItems  OrderItem[]
+  reviews       Review[]
   @@map("products")
   @@index([price])
   @@index([createdAt(sort: Desc)])
