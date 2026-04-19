@@ -16,15 +16,14 @@ export class OrderService {
 			throw new BadRequestError("Your cart is empty.");
 		}
 
-		const reserved: Array<{
-			productId: string;
-			quantity: number;
-			name: string;
-		}> = [];
+		const totalAmount = cart.items.reduce(
+			(sum, item) => sum + Number(item.product.price) * item.quantity,
+			0,
+		);
 
-		try {
+		const order = await prisma.$transaction(async (tx) => {
 			for (const item of cart.items) {
-				const result = await prisma.product.updateMany({
+				const result = await tx.product.updateMany({
 					where: {
 						id: item.productId,
 						stock: { gte: item.quantity },
@@ -33,25 +32,12 @@ export class OrderService {
 				});
 
 				if (result.count === 0) {
-					await this.releaseStock(reserved);
 					throw new BadRequestError(
-						`Unfortunately, "${item.product.name}" is no longer available in sufficient quantity`,
+						`Кількість товару "${item.product.name}" недостатня на складі.`,
 					);
 				}
-
-				reserved.push({
-					productId: item.productId,
-					quantity: item.quantity,
-					name: item.product.name,
-				});
 			}
-
-			const totalAmount = cart.items.reduce(
-				(sum, item) => sum + Number(item.product.price) * item.quantity,
-				0,
-			);
-
-			const order = await prisma.order.create({
+			return await tx.order.create({
 				data: {
 					userId,
 					total: totalAmount,
@@ -65,19 +51,20 @@ export class OrderService {
 					},
 				},
 			});
+		});
+		const line_items = cart.items.map((item) => ({
+			price_data: {
+				currency: "uah",
+				product_data: { name: item.product.name },
+				unit_amount: Math.round(Number(item.product.price) * 100),
+			},
+			quantity: item.quantity,
+		}));
 
-			const line_items = cart.items.map((item) => ({
-				price_data: {
-					currency: "uah",
-					product_data: { name: item.product.name },
-					unit_amount: Math.round(Number(item.product.price) * 100),
-				},
-				quantity: item.quantity,
-			}));
+		const frontendUrl =
+			process.env.FRONTEND_URLS?.split(",")[0] || "http://localhost:5173";
 
-			const frontendUrl =
-				process.env.FRONTEND_URLS?.split(",")[0] || "http://localhost:5173";
-
+		try {
 			const session = await stripe.checkout.sessions.create({
 				payment_method_types: ["card"],
 				mode: "payment",
@@ -91,9 +78,13 @@ export class OrderService {
 			logger.info({ userId, orderId: order.id }, "Payment session created");
 			return { url: session.url };
 		} catch (error: unknown) {
+			await this.expireOrder(order.id);
+
 			if (error instanceof Stripe.errors.StripeError) {
-				await this.releaseStock(reserved);
-				logger.error({ error }, "Stripe error during checkout, stock released");
+				logger.error(
+					{ error },
+					"Stripe error during checkout, order cancelled",
+				);
 				throw new BadRequestError(`Payment provider error: ${error.message}`);
 			}
 			throw error;
@@ -111,6 +102,26 @@ export class OrderService {
 	) {
 		await prisma.$transaction(async (tx) => {
 			await tx.processedStripeEvent.create({ data: { id: eventId } });
+
+			const orderForValidation = await tx.order.findUnique({
+				where: { id: orderId },
+			});
+			if (!orderForValidation) throw new BadRequestError("Order not found");
+
+			const expectedAmountInCents = Number(orderForValidation.total) * 100;
+			if (sessionData.amountTotal !== expectedAmountInCents) {
+				logger.error(
+					{
+						orderId,
+						expected: expectedAmountInCents,
+						actual: sessionData.amountTotal,
+					},
+					"Price tampering detected!",
+				);
+				throw new BadRequestError(
+					"Сплачена сума не відповідає вартості замовлення",
+				);
+			}
 
 			const updatedOrder = await tx.order.update({
 				where: { id: orderId },
@@ -155,12 +166,14 @@ export class OrderService {
 			});
 
 			if (order && order.status === "PENDING") {
-				for (const item of order.items) {
-					await tx.product.update({
-						where: { id: item.productId },
-						data: { stock: { increment: item.quantity } },
-					});
-				}
+				await Promise.all(
+					order.items.map((item) =>
+						tx.product.update({
+							where: { id: item.productId },
+							data: { stock: { increment: item.quantity } },
+						}),
+					),
+				);
 
 				await tx.order.update({
 					where: { id: orderId },
@@ -173,21 +186,6 @@ export class OrderService {
 				);
 			}
 		});
-	}
-
-	private async releaseStock(
-		reserved: Array<{ productId: string; quantity: number }>,
-	) {
-		if (reserved.length === 0) return;
-		await Promise.all(
-			reserved.map((r) =>
-				prisma.product.update({
-					where: { id: r.productId },
-					data: { stock: { increment: r.quantity } },
-				}),
-			),
-		);
-		logger.info({ count: reserved.length }, "Reserved stock released");
 	}
 
 	async myOrders(userId: string, dto: GetMyOrdersDto) {
