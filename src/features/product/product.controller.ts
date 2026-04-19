@@ -11,7 +11,7 @@ export class productController {
 	async getAllProducts(req: Request, res: Response) {
 		const { query } = getProductsSchema.parse(req);
 		const result = await productService.getAll(query);
-		res.json(result).status(200);
+		res.status(200).json(result);
 	}
 
 	async getProductById(req: Request, res: Response) {
