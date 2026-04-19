@@ -32,7 +32,7 @@ export async function startMeiliConsumer() {
 				}
 
 				if (routingKey === "product.deleted") {
-					await meiliClient.index("prodcuts").deleteDocument(eventData.id);
+					await meiliClient.index("products").deleteDocument(eventData.id);
 					logger.info({ id: eventData.id }, "Product removed from Meilisearch");
 				}
 
