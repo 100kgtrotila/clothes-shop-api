@@ -3,11 +3,7 @@ import { prisma } from "../../db/prisma.js";
 import { BadRequestError, NotFoundError } from "../../errors/app.error.js";
 import { logger } from "../../utils/logger.js";
 import { stripe } from "../../utils/stripe.js";
-import type {
-	GetMyOrdersDto,
-	OrderParamsDto,
-	UpdateStatusOrderBody,
-} from "./order.schema.js";
+import type { GetMyOrdersDto, UpdateStatusOrderBody } from "./order.schema.js";
 
 export class OrderService {
 	async checkout(userId: string) {
