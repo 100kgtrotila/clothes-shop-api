@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import {
+	type CreateProductDto,
 	deleteProductSchema,
 	getProductsSchema,
 	type ProductParamsDto,
@@ -7,7 +8,7 @@ import {
 } from "./product.schema.js";
 import productService from "./product.service.js";
 
-export class productController {
+export class ProductController {
 	async getAllProducts(req: Request, res: Response) {
 		const { query } = getProductsSchema.parse(req);
 		const result = await productService.getAll(query);
@@ -24,7 +25,8 @@ export class productController {
 	}
 
 	async createProduct(req: Request, res: Response) {
-		const newProduct = await productService.create(req.body);
+		const dto = req.body as CreateProductDto;
+		const newProduct = await productService.create(dto);
 		res.status(201).json({
 			success: true,
 			data: newProduct,
@@ -50,4 +52,4 @@ export class productController {
 	}
 }
 
-export default new productController();
+export default new ProductController();
