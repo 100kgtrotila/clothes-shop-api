@@ -141,7 +141,7 @@ export class ProductService {
 
 		const uniqueSlug = `${baseSlug}-${nanoid(5).toLocaleLowerCase()}`;
 
-		const newProduct = prisma.$transaction(async (tx) => {
+		const newProduct = await prisma.$transaction(async (tx) => {
 			const product = await tx.product.create({
 				data: {
 					...productData,
