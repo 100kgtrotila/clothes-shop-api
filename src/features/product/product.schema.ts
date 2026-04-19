@@ -43,6 +43,10 @@ export const deleteProductSchema = z.object({
 	}),
 });
 
+export const payloadSchema = z.object({
+	productId: z.uuid(),
+});
+
 export type ProductParamsDto = z.infer<typeof getProductByIdSchema>["params"];
 export type GetProductsDto = z.infer<typeof getProductsSchema>["query"];
 export type CreateProductDto = z.infer<typeof createProductSchema>["body"];

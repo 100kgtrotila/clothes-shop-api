@@ -4,6 +4,7 @@ import express from "express";
 import { pinoHttp } from "pino-http";
 import { startEmailConsumer } from "./consumers/email.consumer.js";
 import { startMeiliConsumer } from "./consumers/meili.consumer.js";
+import { startProductConsumer } from "./consumers/product.consumer.js";
 import cartRouter from "./features/cart/cart.routes.js";
 import categoryRoutes from "./features/category/category.routes.js";
 import orderRoutes from "./features/order/order.routes.js";
@@ -60,6 +61,9 @@ const server = app.listen(PORT, () => {
 		logger.error({ err }, "Failed to start MeiliSearch");
 	});
 	startMeiliConsumer().catch((err) => {
+		logger.error({ err }, "Failed to start MeiliSearch Consumer");
+	});
+	startProductConsumer().catch((err) => {
 		logger.error({ err }, "Failed to start MeiliSearch Consumer");
 	});
 });

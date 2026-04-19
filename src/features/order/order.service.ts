@@ -207,12 +207,12 @@ export class OrderService {
 		return { orders, total, page, limit, totalPages: Math.ceil(total / limit) };
 	}
 
-	async orderById(userId: string, dto: OrderParamsDto) {
+	async orderById(userId: string, orderId: string) {
 		const order = await prisma.order.findUnique({
-			where: { id: dto.id, userId },
+			where: { id: orderId, userId },
 			include: { items: true },
 		});
-		if (!order) throw new NotFoundError(`Order with id ${dto.id} not found`);
+		if (!order) throw new NotFoundError(`Order with id ${orderId} not found`);
 		return order;
 	}
 

@@ -30,46 +30,33 @@ export class CategoryService {
 			throw new ConflictError(`Category with slug ${dto.slug} already exists`);
 		}
 
-		const category = prisma.category.create({ data: dto });
+		const category = await prisma.category.create({ data: dto });
 
 		await this.cache.del(CACHE_KEYS.all);
 		return category;
 	}
 
 	async update(id: string, dto: UpdateCategoryDto) {
-		const exists = await prisma.category.findUnique({
-			where: {
-				id: id,
-			},
-		});
-
-		if (!exists) {
-			throw new NotFoundError(`Category with id ${id} not found`);
-		}
+		const exists = await prisma.category.findUnique({ where: { id } });
+		if (!exists) throw new NotFoundError(`Category with id ${id} not found`);
 
 		if (dto.slug && dto.slug !== exists.slug) {
 			const slugTaken = await prisma.category.findUnique({
 				where: { slug: dto.slug },
 			});
-
-			if (slugTaken) {
-				throw new ConflictError(
-					`Category with slug ${dto.slug} already exists`,
-				);
-			}
-
-			const updated = prisma.category.update({
-				where: { id },
-				data: {
-					...(dto.name !== undefined && { name: dto.name }),
-					...(dto.slug !== undefined && { slug: dto.slug }),
-				},
-			});
-
-			await this.cache.del(CACHE_KEYS.all);
-
-			return updated;
+			if (slugTaken) throw new ConflictError(`Slug ${dto.slug} already exists`);
 		}
+
+		const updated = await prisma.category.update({
+			where: { id },
+			data: {
+				...(dto.name !== undefined && { name: dto.name }),
+				...(dto.slug !== undefined && { slug: dto.slug }),
+			},
+		});
+
+		await this.cache.del(CACHE_KEYS.all);
+		return updated;
 	}
 
 	async delete(id: string) {

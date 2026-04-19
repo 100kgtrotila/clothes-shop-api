@@ -57,8 +57,11 @@ export class ReviewService {
 
 		const reviews = await prisma.review.findMany({
 			where: { productId: productId },
-			orderBy: { createdAt: "desc" },
-			include: { user: { select: { email: true } } },
+			include: {
+				user: {
+					select: { id: true },
+				},
+			},
 		});
 
 		return reviews;

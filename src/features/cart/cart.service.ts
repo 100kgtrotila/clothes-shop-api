@@ -5,18 +5,11 @@ import type { AddCartItemDto, UpdateCartItemDto } from "./cart.schema.js";
 
 export class CartService {
 	async addItem(userId: string, dto: AddCartItemDto) {
-		let cart = await prisma.cart.findUnique({
+		const cart = await prisma.cart.upsert({
 			where: { userId },
+			create: { userId },
+			update: {},
 		});
-		if (!cart) {
-			cart = await prisma.cart.create({
-				data: { userId },
-			});
-			logger.info(
-				{ userId },
-				"Lazy initialization: created missing cart for user",
-			);
-		}
 
 		const product = await prisma.product.findUnique({
 			where: { id: dto.productId },
@@ -72,32 +65,11 @@ export class CartService {
 	}
 
 	async getUserCart(userId: string) {
-		let cart = await prisma.cart.findUnique({
+		const cart = await prisma.cart.upsert({
 			where: { userId },
-			include: {
-				items: {
-					include: {
-						product: true,
-					},
-				},
-			},
+			create: { userId },
+			update: {},
 		});
-		if (!cart) {
-			cart = await prisma.cart.create({
-				data: { userId },
-				include: {
-					items: {
-						include: {
-							product: true,
-						},
-					},
-				},
-			});
-			logger.info(
-				{ userId },
-				"Lazy initialization: created missing cart for user",
-			);
-		}
 		return cart;
 	}
 
@@ -116,6 +88,7 @@ export class CartService {
 				},
 			},
 		});
+		if (!cartItem) throw new NotFoundError("Cart item not found");
 
 		const product = await prisma.product.findUnique({
 			where: { id: productId },
@@ -127,8 +100,6 @@ export class CartService {
 				`Not enough products in stock: ${product.stock}.`,
 			);
 		}
-		if (!cartItem)
-			throw new NotFoundError(`Product with id ${productId} not found in cart`);
 
 		const updatedItem = await prisma.cartItem.update({
 			where: { id: cartItem.id },

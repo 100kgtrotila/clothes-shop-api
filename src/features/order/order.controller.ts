@@ -28,9 +28,9 @@ export class OrderController {
 				sig,
 				process.env.STRIPE_WEBHOOK_SECRET as string,
 			);
-		} catch (err: any) {
-			logger.error({ err }, "Stripe webhook signature mismatch");
-			return res.status(400).send(`Webhook Error: ${err.message}`);
+		} catch (err: unknown) {
+			const message = err instanceof Error ? err.message : "Unknown error";
+			return res.status(400).send(`Webhook Error: ${message}`);
 		}
 
 		if (event.type === "checkout.session.completed") {
@@ -70,7 +70,11 @@ export class OrderController {
 			const session = event.data.object as any;
 			const orderId = session.metadata.orderId;
 
-			await orderService.expireOrder(orderId);
+			try {
+				await orderService.expireOrder(orderId);
+			} catch (err) {
+				logger.error({ err, orderId }, "Failed to mark order as expired");
+			}
 		}
 
 		res.json({ received: true });
@@ -90,8 +94,7 @@ export class OrderController {
 
 	async getOrderById(req: Request, res: Response) {
 		const userId = req.user.id;
-		const orderId = req.params as unknown as OrderParamsDto;
-
+		const { id: orderId } = req.params as unknown as OrderParamsDto;
 		const order = await orderService.orderById(userId, orderId);
 
 		res.status(200).json({
