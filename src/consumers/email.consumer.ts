@@ -6,7 +6,6 @@ import { ReceiptEmail } from "../templates/ReceiptEmail.js";
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
-const QUEUE = "order_notifications";
 const DLQ = "order_notifications.dead_letter";
 const DLX = "dlx";
 const MAX_RETRIES = 3;
@@ -39,7 +38,7 @@ export async function startEmailConsumer() {
 
 	logger.info("Email consumer started with DLQ support");
 
-	channel.consume(QUEUE, async (msg) => {
+	channel.consume(QUEUE_NAME, async (msg) => {
 		if (!msg) return;
 		const headers = msg.properties.headers ?? {};
 		const retries = (headers["x-retry-count"] as number | undefined) ?? 0;
@@ -85,7 +84,7 @@ export async function startEmailConsumer() {
 				const delayMs = 2 ** retries * 60 * 1000;
 
 				setTimeout(() => {
-					channel.publish("", QUEUE, msg.content, {
+					channel.publish("", QUEUE_NAME, msg.content, {
 						persistent: true,
 						headers: {
 							...headers,
